@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Virtual Assistant Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#137fec",
+                "background-light": "#f6f7f8",
+                "background-dark": "#101922",
+                "surface-dark": "#1e242b",
+                "surface-light": "#ffffff",
+              },
+              fontFamily: {
+                "display": ["Inter", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #283039; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3e4852; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-hidden h-screen flex flex-col">
+<!-- Header -->
+<header class="flex items-center justify-between border-b border-solid border-slate-200 dark:border-[#283039] px-6 py-4 bg-surface-light dark:bg-background-dark z-10">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="size-10 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-2xl">smart_toy</span>
+</div>
+<div class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-white dark:border-background-dark"></div>
+</div>
+<div>
+<h2 class="text-base font-bold leading-tight">Virtual Assistant</h2>
+<p class="text-slate-500 dark:text-[#9dabb9] text-xs">Always here to help</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-[#283039] text-slate-600 dark:text-white transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-[#283039] text-slate-600 dark:text-white transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</header>
+<!-- Main Chat Area -->
+<main class="flex-1 overflow-y-auto px-4 sm:px-10 py-6 scroll-smooth">
+<div class="max-w-[800px] mx-auto flex flex-col gap-6">
+<!-- Date Separator -->
+<div class="flex justify-center">
+<span class="text-xs font-medium text-slate-400 dark:text-[#6b7a8a] py-1 px-3 bg-slate-100 dark:bg-[#1e242b] rounded-full">Today</span>
+</div>
+<!-- Agent Message -->
+<div class="flex items-end gap-3 group">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 bg-primary/10 flex items-center justify-center text-primary" data-alt="Robot avatar icon">
+<span class="material-symbols-outlined text-sm">smart_toy</span>
+</div>
+<div class="flex flex-col gap-1 items-start max-w-[85%] sm:max-w-[70%]">
+<div class="flex items-center gap-2 px-1">
+<span class="text-xs font-medium text-slate-500 dark:text-[#9dabb9]">Assistant</span>
+<span class="text-[10px] text-slate-400 dark:text-[#6b7a8a]">10:23 AM</span>
+</div>
+<div class="p-4 rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-[#283039] text-slate-800 dark:text-white text-base leading-relaxed shadow-sm">
+                        Hello! I am your virtual assistant. How can I help you with your account today?
+                    </div>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex items-end gap-3 justify-end group">
+<div class="flex flex-col gap-1 items-end max-w-[85%] sm:max-w-[70%]">
+<div class="flex items-center gap-2 px-1 flex-row-reverse">
+<span class="text-xs font-medium text-slate-500 dark:text-[#9dabb9]">You</span>
+<span class="text-[10px] text-slate-400 dark:text-[#6b7a8a]">10:24 AM</span>
+</div>
+<div class="p-4 rounded-2xl rounded-br-sm bg-primary text-white text-base leading-relaxed shadow-md">
+                        I need to reset my password.
+                    </div>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 border border-slate-200 dark:border-[#283039]" data-alt="User profile abstract gradient" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDzC8wODmhWVTT0rXQO4uqGAY92c7d1y0eSp1GTwIsUrB82tnP8ujOLVRTL2K0xfQ0zluN8U8mjVecFnlrfR7tYXe1uI7JGXeY6jXTMsa8dBFCYZV6al6sSGXZS61OPZeNkhrGw7aLgCNTTfWUx5U7lxjk9vXBHVayzp5bbzcLLQL_IwsTPrwEjsnGkpoC1naBgh0K1NgoqXZZotQrKsXP-WRtbKxXAKvyC7MjzCKBka209Mj4yLVrUQAd1C3g2U8c1Sh4iQqQHxmY");'></div>
+</div>
+<!-- Agent Message -->
+<div class="flex items-end gap-3 group">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 bg-primary/10 flex items-center justify-center text-primary" data-alt="Robot avatar icon">
+<span class="material-symbols-outlined text-sm">smart_toy</span>
+</div>
+<div class="flex flex-col gap-1 items-start max-w-[85%] sm:max-w-[70%]">
+<div class="flex items-center gap-2 px-1">
+<span class="text-xs font-medium text-slate-500 dark:text-[#9dabb9]">Assistant</span>
+<span class="text-[10px] text-slate-400 dark:text-[#6b7a8a]">10:24 AM</span>
+</div>
+<div class="p-4 rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-[#283039] text-slate-800 dark:text-white text-base leading-relaxed shadow-sm">
+                        I can help with that. Please enter your email address below.
+                    </div>
+</div>
+</div>
+<!-- Typing Indicator -->
+<div class="flex items-end gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 bg-primary/10 flex items-center justify-center text-primary" data-alt="Robot avatar icon">
+<span class="material-symbols-outlined text-sm">smart_toy</span>
+</div>
+<div class="flex flex-col gap-1 items-start">
+<div class="px-4 py-3 rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-[#283039] shadow-sm flex gap-1 items-center h-[46px]">
+<span class="block size-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"></span>
+<span class="block size-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+<span class="block size-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Input Area -->
+<footer class="p-4 sm:px-10 pb-6 pt-2 bg-background-light dark:bg-background-dark">
+<div class="max-w-[800px] mx-auto w-full">
+<div class="relative flex items-center w-full bg-white dark:bg-[#283039] rounded-xl shadow-lg border border-slate-200 dark:border-none ring-1 ring-transparent focus-within:ring-primary/50 transition-all">
+<!-- Attachment Button -->
+<button class="pl-4 pr-2 py-3 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">add_circle</span>
+</button>
+<!-- Text Input -->
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#9dabb9] text-base py-4" placeholder="Type a message..." type="text"/>
+<!-- Actions -->
+<div class="flex items-center pr-3 gap-2">
+<button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors hidden sm:block">
+<span class="material-symbols-outlined text-[20px] font-light">mood</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors hidden sm:block">
+<span class="material-symbols-outlined text-[20px] font-light">mic</span>
+</button>
+<button class="ml-2 flex items-center justify-center size-10 rounded-lg bg-primary hover:bg-blue-600 text-white shadow-md transition-all hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+</div>
+</div>
+<p class="text-center text-[10px] text-slate-400 dark:text-[#6b7a8a] mt-3">
+                AI can make mistakes. Consider checking important information.
+            </p>
+</div>
+</footer>
+</body></html>
