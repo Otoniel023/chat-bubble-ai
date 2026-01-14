@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/vite": "^4.1.18"
+  },
+  "devDependencies": {
+    "vite": "^7.3.0"
+  }
+}
