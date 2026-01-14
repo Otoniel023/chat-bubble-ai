@@ -3,8 +3,10 @@
 @import "tailwindcss";
 
 @theme {
+  /* Font Family */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 
+  /* Color System */
   --color-primary: #137fec;
   --color-primary-hover: #0d6edb;
   --color-background-light: #f6f7f8;
@@ -15,6 +17,9 @@
   --color-border-dark: #283039;
   --color-text-secondary: #9dabb9;
   --color-text-tertiary: #6b7a8a;
+
+  /* Animation */
+  --animate-bounce: bounce 1.4s infinite;
 }
 
 @layer base {
