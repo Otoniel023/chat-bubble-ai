@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { ChatInputConfig } from '../types/chat.types';
+import { ChatInputConfig, InputActionButton } from '../types/chat.types';
 import { useChat } from '../hooks/useChat';
 
 interface ChatInputProps {
@@ -30,18 +30,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const rightActions = actions.filter((a) => a.position === 'right' && a.visible !== false);
 
   // Default actions
-  const defaultLeftActions = showAttachment
+  const defaultLeftActions: InputActionButton[] = showAttachment
     ? [
         {
           id: 'attachment',
           icon: 'add_circle',
           ariaLabel: 'Add attachment',
           position: 'left' as const,
+          onClick: undefined,
         },
       ]
     : [];
 
-  const defaultRightActions = [
+  const defaultRightActions: InputActionButton[] = [
     ...(showEmoji
       ? [
           {
@@ -49,6 +50,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             icon: 'mood',
             ariaLabel: 'Add emoji',
             position: 'right' as const,
+            onClick: undefined,
           },
         ]
       : []),
@@ -59,6 +61,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             icon: 'mic',
             ariaLabel: 'Voice input',
             position: 'right' as const,
+            onClick: undefined,
           },
         ]
       : []),
@@ -99,7 +102,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               <button
                 key={action.id}
                 type="button"
-                onClick={action.onClick}
+                onClick={action.onClick || undefined}
                 aria-label={action.ariaLabel}
                 disabled={isLoading}
                 className="pl-4 pr-2 py-3 text-slate-400 hover:text-primary transition-colors disabled:opacity-50"
