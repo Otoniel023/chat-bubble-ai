@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // @ts-expect-error - Type conflict due to workspace setup, but runtime works correctly
+ 
   plugins: [react(), tailwindcss()],
   server: {
     allowedHosts: [
