@@ -1,19 +1,31 @@
 /* Embedded Chat Widget Styles */
 
+/* Reset for iframe context */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
+
 .chat-widget-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 9999;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
 }
 
-/* Toggle Button */
+/* Toggle Button - fills the iframe when collapsed */
 .chat-toggle-button {
-  width: 60px;
-  height: 60px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
@@ -25,7 +37,9 @@
   color: white;
   font-size: 28px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   overflow: hidden;
 }
 
@@ -59,19 +73,21 @@
   transition: transform 0.3s;
 }
 
-/* Chat Bubble Container */
+/* Chat Bubble Container - fills iframe when expanded */
 .chat-bubble-container {
   position: absolute;
-  bottom: 80px;
+  top: 0;
+  left: 0;
   right: 0;
-  width: 400px;
-  height: 600px;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
   background: white;
   border-radius: 16px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow: visible; /* Changed from hidden to visible */
+  overflow: hidden;
   opacity: 0;
-  transform: scale(0.9) translateY(20px);
+  transform: scale(0.9);
   pointer-events: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -80,7 +96,7 @@
 
 .chat-bubble-container.open {
   opacity: 1;
-  transform: scale(1) translateY(0);
+  transform: scale(1);
   pointer-events: all;
 }
 
@@ -163,35 +179,10 @@
   }
 }
 
-/* Responsive - Mobile */
+/* Responsive - Mobile: iframe handles positioning, widget just fills it */
 @media (max-width: 768px) {
-  .chat-widget-container {
-    bottom: 0;
-    right: 0;
-    left: 0;
-    top: 0;
-  }
-
-  .chat-toggle-button {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-  }
-
   .chat-bubble-container {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
     border-radius: 0;
-    transform: translateY(100%);
-  }
-
-  .chat-bubble-container.open {
-    transform: translateY(0);
   }
 }
 
