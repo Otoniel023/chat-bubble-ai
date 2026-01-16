@@ -99,6 +99,30 @@ export class AuthService {
   getRefreshToken(): string | null {
     return storage.getRefreshToken();
   }
+
+  /**
+   * Refresh the access token using refresh token
+   * POST /auth/refresh
+   */
+  async refreshToken(): Promise<AuthResponse> {
+    const accessToken = storage.getAccessToken();
+    const refreshToken = storage.getRefreshToken();
+
+    if (!refreshToken || !accessToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const response = await apiClient.post<AuthResponse>(
+      '/auth/refresh',
+      { accessToken, refreshToken }
+    );
+
+    // Store new tokens
+    storage.setAccessToken(response.accessToken);
+    storage.setRefreshToken(response.refreshToken);
+
+    return response;
+  }
 }
 
 // Export singleton instance
