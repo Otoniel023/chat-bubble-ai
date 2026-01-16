@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChatBubble } from './ChatBubble';
 import type { ChatBubbleConfig } from '../types/chat.types';
 import './EmbeddedChatWidget.css';
@@ -9,12 +9,24 @@ interface EmbeddedChatWidgetProps {
   notificationCount?: number;
 }
 
+// Helper to notify parent window about state changes (for iframe embedding)
+const notifyParent = (state: 'expand' | 'collapse') => {
+  if (window.parent !== window) {
+    window.parent.postMessage(state, '*');
+  }
+};
+
 export function EmbeddedChatWidget({
   config,
   showNotificationBadge = false,
   notificationCount = 0,
 }: EmbeddedChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Notify parent when chat opens/closes
+  useEffect(() => {
+    notifyParent(isOpen ? 'expand' : 'collapse');
+  }, [isOpen]);
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
