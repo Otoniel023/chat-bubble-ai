@@ -42,11 +42,12 @@ export const storage = {
     }
   },
 
-  // Clear all auth data
+  // Clear all auth data and notify listeners
   clearAuth: (): void => {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
+    window.dispatchEvent(new CustomEvent('auth-cleared'));
   },
 
   // Check if user is authenticated
