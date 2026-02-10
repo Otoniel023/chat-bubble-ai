@@ -35,6 +35,36 @@ export class AgentService {
   }
 
   /**
+   * Attempt to refresh tokens when receiving a 401 response.
+   * Returns the new access token on success, or clears auth and throws on failure.
+   */
+  private async handleTokenRefresh(): Promise<string> {
+    const accessToken = storage.getAccessToken();
+    const refreshToken = storage.getRefreshToken();
+
+    if (!refreshToken || !accessToken) {
+      storage.clearAuth();
+      throw new Error('Session expired. Please login again.');
+    }
+
+    const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken, refreshToken }),
+    });
+
+    if (!response.ok) {
+      storage.clearAuth();
+      throw new Error('Session expired. Please login again.');
+    }
+
+    const data = await response.json();
+    storage.setAccessToken(data.accessToken);
+    storage.setRefreshToken(data.refreshToken);
+    return data.accessToken;
+  }
+
+  /**
    * Send a message to the agent with streaming response
    * POST /agents/run-stream
    */
@@ -52,6 +82,33 @@ export class AgentService {
         body: JSON.stringify(requestBody),
         signal,
       });
+
+      // Handle 401 - attempt token refresh and retry
+      if (response.status === 401) {
+        const newToken = await this.handleTokenRefresh();
+
+        const retryResponse = await fetch(`${this.baseUrl}/agents/run-stream`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${newToken}`,
+          },
+          body: JSON.stringify(requestBody),
+          signal,
+        });
+
+        if (!retryResponse.ok) {
+          const contentType = retryResponse.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            const errorData = await retryResponse.json();
+            throw new Error(errorData.error || `HTTP error! status: ${retryResponse.status}`);
+          }
+          throw new Error(`HTTP error! status: ${retryResponse.status}`);
+        }
+
+        await processSSEStream(retryResponse, callbacks);
+        return;
+      }
 
       if (!response.ok) {
         // Try to parse error message

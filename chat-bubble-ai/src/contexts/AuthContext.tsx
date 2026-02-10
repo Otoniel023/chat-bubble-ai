@@ -70,6 +70,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
+  // Sync context state when auth is cleared externally (e.g. by apiClient or agentService on failed refresh)
+  useEffect(() => {
+    const handleAuthCleared = () => {
+      setUser(null);
+      setAccessToken(null);
+      setRefreshToken(null);
+      setIsAuthenticated(false);
+      setError('Session expired. Please login again.');
+    };
+
+    window.addEventListener('auth-cleared', handleAuthCleared);
+    return () => window.removeEventListener('auth-cleared', handleAuthCleared);
+  }, []);
+
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     setError(null);
