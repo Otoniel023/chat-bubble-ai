@@ -1,11 +1,30 @@
-// Export all components
-export { Avatar } from './Avatar';
-export { ChatBubble } from './ChatBubble';
-export { ChatHeader } from './ChatHeader';
-export { ChatInput } from './ChatInput';
-export { ChatMessage } from './ChatMessage';
-export { DateSeparator } from './DateSeparator';
-export { TypingIndicator } from './TypingIndicator';
+/**
+ * Components barrel export
+ * Re-exports from the new ChatBubble module.
+ */
+export {
+    ChatBubbleComponent,
+    ChatBubbleProvider,
+    ChatBubbleContext,
+    useChatBubble,
+    EmbeddedChatWidget,
+    AuthModal,
+    defaultTheme,
+} from './ChatBubble';
 
-// Export types
-export * from '../types/chat.types';
+export type {
+    ChatBubbleConfig,
+    ChatTheme,
+    ChatHeaderConfig,
+    ChatInputConfig,
+    AvatarConfig,
+    HeaderActionButton,
+    InputActionButton,
+    Message,
+    ChatMessage,
+    MessageSender,
+    MessageStatus,
+    TypingIndicatorConfig,
+    DateSeparatorConfig,
+    ChatContextValue,
+} from './ChatBubble';

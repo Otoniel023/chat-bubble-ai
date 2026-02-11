@@ -2,8 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
-import { ChatProvider } from './contexts/ChatContext';
-import { EmbeddedChatWidget } from './components/EmbeddedChatWidget';
+import { ChatBubbleProvider, EmbeddedChatWidget } from './components/ChatBubble';
 
 // Allow configuration from window object
 declare global {
@@ -24,7 +23,7 @@ const config = window.ChatBubbleConfig || {};
 createRoot(document.getElementById('chat-widget-root')!).render(
   <StrictMode>
     <AuthProvider>
-      <ChatProvider>
+      <ChatBubbleProvider>
         <EmbeddedChatWidget
           config={{
             darkMode: config.darkMode ?? true,
@@ -32,7 +31,7 @@ createRoot(document.getElementById('chat-widget-root')!).render(
           showNotificationBadge={config.showNotificationBadge}
           notificationCount={config.notificationCount}
         />
-      </ChatProvider>
+      </ChatBubbleProvider>
     </AuthProvider>
   </StrictMode>
 );

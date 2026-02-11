@@ -1,13 +1,11 @@
 import { AuthProvider } from './contexts/AuthContext';
-import { ChatProvider } from './contexts/ChatContext';
+import { ChatBubbleProvider, ChatBubbleComponent, useChatBubble } from './components/ChatBubble';
 import { useAuth } from './hooks/useAuth';
-import { useChat } from './hooks/useChat';
-import { ChatBubble } from './components/ChatBubble';
-import type { ChatBubbleConfig } from './types/chat.types';
+import type { ChatBubbleConfig } from './components/ChatBubble';
 
 function ChatApp() {
   const { isAuthenticated, logout, user } = useAuth();
-  const { clearMessages } = useChat();
+  const { clearMessages } = useChatBubble();
 
   // Chat configuration
   const chatConfig: ChatBubbleConfig = {
@@ -56,15 +54,15 @@ function ChatApp() {
     },
   };
 
-  return <ChatBubble config={chatConfig} />;
+  return <ChatBubbleComponent config={chatConfig} />;
 }
 
 function App() {
   return (
     <AuthProvider>
-      <ChatProvider>
+      <ChatBubbleProvider>
         <ChatApp />
-      </ChatProvider>
+      </ChatBubbleProvider>
     </AuthProvider>
   );
 }
