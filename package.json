@@ -1,9 +1,17 @@
 {
-  "dependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
-    "@tailwindcss/vite": "^4.1.18"
-  },
-  "devDependencies": {
-    "vite": "^7.3.0"
+  "name": "chat-bubble-ai-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Monorepo for chat-bubble-ai component library and playground",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/playground",
+    "dev:lib": "npm run dev --workspace=packages/chat-bubble-ai",
+    "build:lib": "npm run build:lib --workspace=packages/chat-bubble-ai",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
   }
 }

@@ -14,6 +14,7 @@ export { useChatBubble } from './useChatBubble';
 
 // Embedded widget
 export { EmbeddedChatWidget } from './components/EmbeddedChatWidget';
+export { FloatingChatWidget } from './components/FloatingChatWidget';
 
 // Auth modal (optional)
 export { AuthModal } from './components/AuthModal';

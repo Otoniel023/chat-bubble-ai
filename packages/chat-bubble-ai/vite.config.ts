@@ -16,9 +16,9 @@ export default defineConfig(({ mode }) => {
         react(),
         tailwindcss(),
         dts({
-          include: ['src/index.ts', 'src/components/ChatBubble/**/*'],
-          outDir: 'dist',
-          rollupTypes: true,
+          include: ['src'],
+          tsconfigPath: './tsconfig.app.json',
+          insertTypesEntry: true,
         }),
       ],
       build: {

@@ -8,6 +8,7 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "source": "./src/index.ts",
       "import": "./dist/chat-bubble-ai.js",
       "require": "./dist/chat-bubble-ai.umd.cjs",
       "types": "./dist/index.d.ts"

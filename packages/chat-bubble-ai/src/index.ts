@@ -15,6 +15,7 @@ export {
     ChatBubbleContext,
     useChatBubble,
     EmbeddedChatWidget,
+    FloatingChatWidget,
     AuthModal,
     defaultTheme,
 } from './components/ChatBubble';
