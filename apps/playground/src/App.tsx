@@ -41,6 +41,22 @@ const chatConfig: ChatBubbleConfig = {
             primary: '#ff8800',
             primaryHover: '#e67a00',
         },
+        backgrounds: {
+            chat: 'linear-gradient(135deg, #d0eefe 0%, #7bc5e8 100%)', // Example gradient
+        },
+        messageBubbles: {
+            user: {
+                opacity: 0.9,
+                background: '#fb923c',
+                textColor: '#fff', // Example customization
+            },
+            assistant: {
+                opacity: 0.6,
+                background: '#ffffff',
+                textColor: '#000',  // Example customization
+                fontWeight: 'base',
+            }
+        },
         fonts: {
             family: "'Inter', sans-serif",
             sizes: {
@@ -54,12 +70,12 @@ const chatConfig: ChatBubbleConfig = {
     },
     header: {
         avatar: {
-            type: 'icon',
-            icon: 'support_agent',
+            type: 'image',
+            src: 'https://photos.dominicanatours.com/imagenes/domi.webp',
             backgroundColor: 'bg-orange-100',
             textColor: 'text-orange-600',
         },
-        title: 'Dominicana Tours',
+        title: 'DominicanaTours agent',
         subtitle: 'Nº1 en Viajes al Caribe',
         actions: [
             {
@@ -77,7 +93,23 @@ const chatConfig: ChatBubbleConfig = {
         showVoice: false,
         showSendButton: true,
         disclaimer: 'Asistente Virtual de Dominicana Tours',
+        sendButtonColor: '#f1984d',
+        sendButtonDisabledColor: '#cbd5e1',
     },
+    launcher: {
+        imageUrl: 'https://photos.dominicanatours.com/imagenes/domi.webp',
+        color: '#ff8800',
+    },
+    feedback: {
+        apiError: '¡Oops! Parece que estoy teniendo problemas para conectar. Por favor intenta de nuevo en unos momentos.',
+    },
+    notification: {
+        title: '¡Hola! Soy Domi, tu asistente virtual en DominicanaTours.',
+        message: '¡Estoy aquí para cualquier duda que puedas tener!',
+        // icon: 'waving_hand', // Icon removed to match design closer, or keep it if preferred. Design didn't have icon besides text.
+        interval: 50000,
+        duration: 10000,
+    }
 };
 
 function App() {
@@ -132,7 +164,7 @@ function App() {
             </div>
 
             {/* Chat Bubble Implementation */}
-            <ChatBubbleProvider agentId="playground-test">
+            <ChatBubbleProvider agentId="playground-test" apiErrorMessage={chatConfig.feedback?.apiError}>
                 <FloatingChatWidget config={chatConfig} defaultOpen={false} />
                 <DebugPanel />
             </ChatBubbleProvider>

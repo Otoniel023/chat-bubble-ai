@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChatBubbleComponent } from '../ChatBubble';
 import type { ChatBubbleConfig } from '../ChatBubble.types';
 
@@ -13,8 +13,46 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     defaultOpen = false,
 }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
+    const [showNotification, setShowNotification] = useState(false);
 
-    const toggleOpen = () => setIsOpen(!isOpen);
+    const toggleOpen = () => {
+        setIsOpen(!isOpen);
+        if (!isOpen) setShowNotification(false);
+    };
+
+    // Unified notification logic
+    useEffect(() => {
+        // Don't show notification if chat is open or notification not configured
+        if (isOpen || !config.notification) {
+            setShowNotification(false);
+            return;
+        }
+
+        const intervalTime = config.notification.interval || 30000;
+        const durationTime = config.notification.duration || 5000;
+
+        let hideTimer: NodeJS.Timeout;
+
+        const showCycle = () => {
+            setShowNotification(true);
+            hideTimer = setTimeout(() => {
+                setShowNotification(false);
+            }, durationTime);
+        };
+
+        // Show immediately on mount
+        showCycle();
+
+        // Then show periodically
+        const intervalId = setInterval(() => {
+            showCycle();
+        }, intervalTime);
+
+        return () => {
+            clearInterval(intervalId);
+            clearTimeout(hideTimer);
+        };
+    }, [isOpen, config.notification]);
 
     // Override config for widget mode
     const widgetConfig: ChatBubbleConfig = {
@@ -47,8 +85,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                 className={`
                     origin-bottom-right transition-all duration-300 ease-out
                     flex flex-col
-                    bg-white dark:bg-slate-900 
-                    rounded-2xl shadow-2xl 
+                    bg-white dark:bg-slate-900
+                    rounded-2xl shadow-2xl
                     overflow-hidden
                     border border-gray-200 dark:border-gray-800
                     ${isOpen
@@ -59,15 +97,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                 style={{
                     width: isOpen ? 'min(400px, 90vw)' : 'min(400px, 90vw)',
                     height: isOpen ? 'min(600px, 80vh)' : '0px',
-                    // When closed, height 0 prevents layout issues, though scale/opacity handles visual.
-                    // Actually, keep height fixed but hide it visually to allow animation.
-                    // Using tailwind classes above is better.
                 }}
             >
-                {/* Only render component when "open" or keeping it mounted? 
-                    Keeping it mounted preserves state (chat history). 
-                    So we render it always but hide it. 
-                */}
                 <div className="h-full w-full">
                     <ChatBubbleComponent config={widgetConfig} />
                 </div>
@@ -86,18 +117,33 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                     transition-all duration-300
                     outline-none focus:ring-4 focus:ring-indigo-500/30
                     pointer-events-auto
+                    overflow-hidden
                 `}
+                style={{
+                    backgroundColor: config.launcher?.color
+                }}
                 aria-label={isOpen ? 'Close chat' : 'Open chat'}
             >
-                <span
+                <div
                     className={`
-                        material-symbols-outlined text-2xl absolute
+                         inset-0 flex items-center justify-center
                         transition-all duration-300
                         ${isOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}
                     `}
                 >
-                    chat_bubble
-                </span>
+                    {config.launcher?.imageUrl ? (
+                        <img
+                            src={config.launcher.imageUrl}
+                            alt="Chat"
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <span className="material-symbols-outlined text-2xl">
+                            {config.launcher?.icon || 'chat_bubble'}
+                        </span>
+                    )}
+                </div>
+
                 <span
                     className={`
                         material-symbols-outlined text-2xl absolute
@@ -108,6 +154,32 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                     close
                 </span>
             </button>
+
+            {/* Notification Bubble */}
+            {config.notification && showNotification && !isOpen && (
+                <div
+                    className="pointer-events-none absolute w-[230px] h-[220px] -top-[190px] md:top[-100px] right-0 font-semibold z-10 flex flex-row justify-end items-end"
+                    style={{ transform: 'translateX(-10px) translateY(-40px)' }}
+                >
+                    <div className="relative h-max bg-white p-2 border rounded shadow-md w-full text-start text-base overflow-visible">
+                        {config.notification.message || '¡Hola! Soy Domi, tu asistente virtual en DominicanaTours. ¡Estoy aquí para cualquier duda que puedas tener!'}
+
+                        {/* Red tail triangle */}
+                        <div
+                            className="absolute -bottom-[15px] right-4 z-50"
+                            style={{
+                                width: 0,
+                                height: 0,
+                                borderLeft: '10px solid transparent',
+                                borderRight: '10px solid transparent',
+                                borderTop: '15px solid #ffffff'
+                            }}
+                        >
+                        </div>
+                    </div>
+
+                </div>
+            )}
         </div>
     );
 };

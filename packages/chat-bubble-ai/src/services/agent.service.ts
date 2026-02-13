@@ -34,7 +34,7 @@ export class AgentService {
     };
 
     const API_KEY = 'dev-test-key-2026';
-    const STREAM_URL = 'https://localhost:7133/api/agents/stream/domi';
+    const STREAM_URL = 'https://192.168.20.98:7133/api/agents/stream/domi';
 
     try {
       const response = await fetch(STREAM_URL, {

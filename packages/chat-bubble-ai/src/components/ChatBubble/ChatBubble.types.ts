@@ -8,23 +8,23 @@ export type CSSColor = string & { __brand?: 'CSSColor' };
  * All variables from index.css @theme block
  */
 export interface CSSVariables {
-  // Colors
-  colorPrimary?: CSSColor;
-  colorPrimaryHover?: CSSColor;
-  colorBackgroundLight?: CSSColor;
-  colorBackgroundDark?: CSSColor;
-  colorSurfaceLight?: CSSColor;
-  colorSurfaceDark?: CSSColor;
-  colorBorderLight?: CSSColor;
-  colorBorderDark?: CSSColor;
-  colorTextSecondary?: CSSColor;
-  colorTextTertiary?: CSSColor;
-  
-  // Fonts
-  fontSans?: string;
-  
-  // Animations
-  animateBounce?: string;
+    // Colors
+    colorPrimary?: CSSColor;
+    colorPrimaryHover?: CSSColor;
+    colorBackgroundLight?: CSSColor;
+    colorBackgroundDark?: CSSColor;
+    colorSurfaceLight?: CSSColor;
+    colorSurfaceDark?: CSSColor;
+    colorBorderLight?: CSSColor;
+    colorBorderDark?: CSSColor;
+    colorTextSecondary?: CSSColor;
+    colorTextTertiary?: CSSColor;
+
+    // Fonts
+    fontSans?: string;
+
+    // Animations
+    animateBounce?: string;
 }
 
 /**
@@ -41,6 +41,7 @@ export interface ChatTheme {
         dark: string;
         surfaceLight: string;
         surfaceDark: string;
+        chat?: string; // Custom background for the chat area (color or image url)
     };
 
     // Primary and accent colors
@@ -75,11 +76,15 @@ export interface ChatTheme {
             background: string;
             textColor: string;
             borderRadius: string;
+            opacity?: number;
+            fontWeight?: 'base' | 'semi-bold' | 'bold';
         };
         user: {
             background: string;
             textColor: string;
             borderRadius: string;
+            opacity?: number;
+            fontWeight?: 'base' | 'semi-bold' | 'bold';
         };
     };
 
@@ -193,6 +198,8 @@ export interface ChatInputConfig {
     showVoice?: boolean;
     disclaimer?: string;
     maxLength?: number;
+    sendButtonColor?: string; // Custom background color for send button (hex, rgb, etc.)
+    sendButtonDisabledColor?: string; // Custom background color for disabled send button
 }
 
 /**
@@ -213,15 +220,53 @@ export interface DateSeparatorConfig {
 }
 
 /**
+ * Launcher button configuration for floating widget
+ */
+export interface LauncherConfig {
+    imageUrl?: string;
+    icon?: string; // Optional override for icon name if not using image
+    color?: string; // Optional override for background color
+}
+
+/**
+ * Recursive Partial<T>
+ */
+export type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+/**
+ * Main chat bubble configuration
+ */
+/**
+ * Notification configuration for floating widget
+ */
+export interface NotificationConfig {
+    title?: string;
+    message: string;
+    icon?: string;
+    interval?: number; // Time between appearances in ms (default: 60000)
+    duration?: number; // Time visible in ms (default: 5000)
+    className?: string;
+    style?: React.CSSProperties;
+    onClick?: () => void;
+}
+
+/**
  * Main chat bubble configuration
  */
 export interface ChatBubbleConfig {
-    theme?: Partial<ChatTheme>;
+    theme?: DeepPartial<ChatTheme>;
     header?: ChatHeaderConfig;
     input?: ChatInputConfig;
     messages?: Message[];
     typingIndicator?: TypingIndicatorConfig;
     dateSeparator?: DateSeparatorConfig;
+    feedback?: {
+        apiError?: string; // Message to show when API fails
+    };
+    launcher?: LauncherConfig;
+    notification?: NotificationConfig;
     maxWidth?: string;
     height?: string;
     className?: string;

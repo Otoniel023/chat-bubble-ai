@@ -33,6 +33,7 @@ const config: ChatBubbleConfig = {
   header: { ... },          // Configuración del header
   input: { ... },           // Configuración del input
   dateSeparator: { ... },   // Configuración de separadores
+  feedback: { ... },        // Configuración de feedback y errores
 };
 
 <ChatBubble config={config} />
@@ -71,6 +72,7 @@ theme: {
     dark: '#101922',              // Fondo oscuro
     surfaceLight: '#ffffff',      // Tarjetas/superficies modo claro
     surfaceDark: '#1e242b',       // Tarjetas/superficies modo oscuro
+    chat: 'linear-gradient(...)', // Fondo del chat (color, gradiente o imagen)
   },
 
   // Colores de texto
@@ -94,6 +96,10 @@ theme: {
     assistant: {
       background: 'bg-surface-light dark:bg-surface-dark',
       text: 'text-text-primary dark:text-white',
+
+      textColor: '#000000',       // Color de texto específico (opcional)
+      opacity: 1,                 // Opacidad de la burbuja (0-1)
+      fontWeight: 'base',         // 'base' | 'semi-bold' | 'bold'
       borderRadius: 'rounded-2xl rounded-bl-sm',
       padding: 'px-4 py-3',
       maxWidth: 'max-w-[80%]',
@@ -101,6 +107,9 @@ theme: {
     user: {
       background: 'bg-primary',
       text: 'text-white',
+      textColor: '#ffffff',       // Color de texto específico (opcional)
+      opacity: 1,                 // Opacidad de la burbuja (0-1)
+      fontWeight: 'base',         // 'base' | 'semi-bold' | 'bold'
       borderRadius: 'rounded-2xl rounded-br-sm',
       padding: 'px-4 py-3',
       maxWidth: 'max-w-[80%]',
@@ -307,6 +316,8 @@ input: {
 | `showEmoji` | `boolean` | `true` | Botón de emojis |
 | `showVoice` | `boolean` | `true` | Botón de voz |
 | `showSendButton` | `boolean` | `true` | Botón de enviar |
+| `sendButtonColor` | `string` | `undefined` | Color de fondo del botón de enviar |
+| `sendButtonDisabledColor` | `string` | `undefined` | Color de fondo del botón desactivado |
 | `actions` | `Action[]` | `[]` | Botones personalizados |
 
 ### Ejemplos
@@ -394,6 +405,22 @@ const customMessage = {
 
 ---
 
+## Launcher (Botón Flotante)
+
+### Configuración del Botón de Apertura
+
+Solo aplica para `FloatingChatWidget`.
+
+```typescript
+launcher: {
+  imageUrl: 'https://example.com/my-bot-avatar.png', // Imagen personalizada
+  icon: 'forum',                                      // O icono (si no hay imagen)
+  color: '#FF5733',                                   // Color de fondo del botón
+}
+```
+
+---
+
 ## Separadores de Fecha
 
 ### Configuración
@@ -420,6 +447,26 @@ dateSeparator: {
   className: 'text-xs font-bold text-purple-500',
 }
 ```
+
+---
+
+## Feedback y Errores
+
+### Configuración
+
+Permite personalizar los mensajes de error y feedback del sistema.
+
+```typescript
+feedback: {
+  apiError: 'Ocurrió un error al conectar. Por favor intenta más tarde.', // Mensaje custom para error de API
+}
+```
+
+### Propiedades
+
+| Propiedad | Tipo | Default | Descripción |
+|-----------|------|---------|-------------|
+| `apiError` | `string` | `undefined` | Mensaje que se muestra como respuesta del asistente cuando falla la API |
 
 ---
 

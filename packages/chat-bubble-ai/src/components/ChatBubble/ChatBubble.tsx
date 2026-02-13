@@ -73,10 +73,10 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
     // Build CSS variables object for inline styles
     const buildCssVariables = (): React.CSSProperties => {
         const vars: Record<string, string> = {};
-        
+
         if (mergedTheme.cssVariables) {
             const { cssVariables } = mergedTheme;
-            
+
             // Map camelCase to kebab-case CSS variables
             if (cssVariables.colorPrimary) vars['--color-primary'] = cssVariables.colorPrimary;
             if (cssVariables.colorPrimaryHover) vars['--color-primary-hover'] = cssVariables.colorPrimaryHover;
@@ -91,7 +91,58 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
             if (cssVariables.fontSans) vars['--font-sans'] = cssVariables.fontSans;
             if (cssVariables.animateBounce) vars['--animate-bounce'] = cssVariables.animateBounce;
         }
-        
+
+        // Backgrounds
+        if (mergedTheme.backgrounds?.chat) {
+            vars['--chat-background'] = mergedTheme.backgrounds.chat.startsWith('http')
+                ? `url(${mergedTheme.backgrounds.chat})`
+                : mergedTheme.backgrounds.chat;
+        }
+
+        // Message Opacity
+        if (mergedTheme.messageBubbles?.assistant?.opacity !== undefined) {
+            vars['--message-assistant-opacity'] = mergedTheme.messageBubbles.assistant.opacity.toString();
+        }
+        if (mergedTheme.messageBubbles?.user?.opacity !== undefined) {
+            vars['--message-user-opacity'] = mergedTheme.messageBubbles.user.opacity.toString();
+        }
+
+        // Message Backgrounds
+        if (mergedTheme.messageBubbles?.assistant?.background) {
+            vars['--message-assistant-bg'] = mergedTheme.messageBubbles.assistant.background;
+        }
+        if (mergedTheme.messageBubbles?.user?.background) {
+            vars['--message-user-bg'] = mergedTheme.messageBubbles.user.background;
+        }
+
+        // Message Text Colors
+        if (mergedTheme.messageBubbles?.assistant?.textColor) {
+            vars['--message-assistant-text'] = mergedTheme.messageBubbles.assistant.textColor;
+        }
+        if (mergedTheme.messageBubbles?.user?.textColor) {
+            vars['--message-user-text'] = mergedTheme.messageBubbles.user.textColor;
+        }
+
+        // Message Font Weight
+        const getFontWeight = (weight?: 'base' | 'semi-bold' | 'bold') => {
+            switch (weight) {
+                case 'base': return '400';
+                case 'semi-bold': return '600';
+                case 'bold': return '700';
+                default: return undefined;
+            }
+        };
+
+        const assistantFontWeight = getFontWeight(mergedTheme.messageBubbles?.assistant?.fontWeight);
+        if (assistantFontWeight) {
+            vars['--message-assistant-font-weight'] = assistantFontWeight;
+        }
+
+        const userFontWeight = getFontWeight(mergedTheme.messageBubbles?.user?.fontWeight);
+        if (userFontWeight) {
+            vars['--message-user-font-weight'] = userFontWeight;
+        }
+
         // Backward compatibility: support old color properties
         if (mergedTheme.colors.primary && !mergedTheme.cssVariables?.colorPrimary) {
             vars['--color-primary'] = mergedTheme.colors.primary;
@@ -99,7 +150,7 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
         if (mergedTheme.colors.primaryHover && !mergedTheme.cssVariables?.colorPrimaryHover) {
             vars['--color-primary-hover'] = mergedTheme.colors.primaryHover;
         }
-        
+
         return vars as React.CSSProperties;
     };
 
@@ -142,7 +193,7 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
     return (
         <div
             id="chat-bubble-container"
-            className={`flex flex-col overflow-hidden ${darkMode ? 'dark' : ''} ${className}`}
+            className={`flex flex-col overflow-visible relative ${darkMode ? 'dark' : ''} ${className}`}
             style={{
                 maxWidth,
                 height,
@@ -154,7 +205,10 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
             {header && <ChatHeader config={header} />}
 
             {/* Main Chat Area */}
-            <main className="flex-1 overflow-y-auto px-4 sm:px-10 py-6 scroll-smooth bg-background-light dark:bg-background-dark">
+            <main
+                className="flex-1 overflow-y-auto px-4  py-6 scroll-smooth bg-background-light dark:bg-background-dark bg-cover bg-center bg-no-repeat"
+                style={{ background: 'var(--chat-background)' }}
+            >
                 <div className="max-w-[800px] mx-auto flex flex-col gap-6">
                     {Object.entries(groupedMessages).map(([dateKey, dateMessages]) => (
                         <React.Fragment key={dateKey}>
@@ -180,10 +234,12 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
                     {/* Auto-scroll anchor */}
                     <div ref={messagesEndRef} />
                 </div>
+                
             </main>
 
             {/* Input */}
-            {input && <ChatInput  config={input} />}
+            {input && <ChatInput config={input} />}
+            
         </div>
     );
 };

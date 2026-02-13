@@ -17,12 +17,14 @@ export const ChatBubbleContext = createContext<ChatContextValue | undefined>(und
 interface ChatBubbleProviderProps {
     children: React.ReactNode;
     agentId?: string;
+    apiErrorMessage?: string;
 }
 
 export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
     children,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     agentId,
+    apiErrorMessage,
 }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isTyping, setIsTyping] = useState(false);
@@ -132,20 +134,75 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
                     },
                     // onError
                     (err: Error) => {
-                        setError(err.message || 'Failed to get response');
+                        // If we have an API error message configured, show it as an assistant response
+                        if (apiErrorMessage) {
+                            setMessages((prev) => {
+                                // Check if we already created a placeholder
+                                const existing = prev.find((m) => m.id === assistantMessageId);
+                                if (existing) {
+                                    return prev.map((m) =>
+                                        m.id === assistantMessageId
+                                            ? { ...m, content: apiErrorMessage, status: 'sent' as const }
+                                            : m
+                                    );
+                                } else {
+                                    // Or create new one if it failed before first chunk
+                                    return [
+                                        ...prev,
+                                        {
+                                            id: assistantMessageId,
+                                            content: apiErrorMessage,
+                                            role: 'assistant' as const,
+                                            timestamp: new Date().toISOString(),
+                                            status: 'sent' as const,
+                                        },
+                                    ];
+                                }
+                            });
+                        } else {
+                            setError(err.message || 'Failed to get response');
+                        }
                         setIsTyping(false);
                         setIsLoading(false);
                     },
                 );
             } catch (err) {
-                const errorMessage =
-                    err instanceof Error ? err.message : 'An unexpected error occurred';
-                setError(errorMessage);
+                // If we have an API error message configured, show it as an assistant response
+                if (apiErrorMessage) {
+                    setMessages((prev) => {
+                        // Check if we already created a placeholder
+                        const existing = prev.find((m) => m.id === assistantMessageId);
+                        if (existing) {
+                            return prev.map((m) =>
+                                m.id === assistantMessageId
+                                    ? { ...m, content: apiErrorMessage, status: 'sent' as const }
+                                    : m
+                            );
+                        } else {
+                            // Or create new one if it failed immediately
+                            return [
+                                ...prev,
+                                {
+                                    id: assistantMessageId,
+                                    content: apiErrorMessage,
+                                    role: 'assistant' as const,
+                                    timestamp: new Date().toISOString(),
+                                    status: 'sent' as const,
+                                },
+                            ];
+                        }
+                    });
+                } else {
+                    const errorMessage =
+                        err instanceof Error ? err.message : 'An unexpected error occurred';
+                    setError(errorMessage);
+                }
+
                 setIsTyping(false);
                 setIsLoading(false);
             }
         },
-        []
+        [apiErrorMessage]
     );
 
     const clearMessages = useCallback(() => {

@@ -29,9 +29,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
     // Default avatars if not provided
     const messageAvatar: AvatarConfig = defaultAvatar || {
-        type: isUser ? 'text' : 'icon',
+        type: isUser ? 'text' : 'image',
         text: isUser ? 'U' : undefined,
-        icon: isUser ? undefined : 'smart_toy',
+        src: isUser ? undefined : 'https://photos.dominicanatours.com/imagenes/domi.webp',
         backgroundColor: isUser ? 'bg-slate-200 dark:bg-slate-700' : 'bg-primary/10',
         textColor: isUser ? 'text-slate-700 dark:text-black-200' : 'text-black',
         size: 'sm',
@@ -41,19 +41,18 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
     return (
         <div
-            className={`flex items-end gap-3 group ${isUser ? 'justify-end' : ''
-                } ${className}`}
-        >
-            {!isUser && <Avatar config={messageAvatar} />}
+            className={`flex flex-col gap-3 group ${isUser ? 'items-end' : ''
+            } ${className}`}
+            >
 
             <div
-                className={`flex flex-col gap-1 max-w-[85%] sm:max-w-[70%] ${isUser ? 'items-end' : 'items-start'
+                className={`flex flex-col gap-1 max-w-[95%] ${isUser ? 'justify-end' : 'justify-start'
                     }`}
-            >
+                    >
                 <div
                     className={`flex items-center gap-2 px-1 ${isUser ? 'flex-row-reverse' : ''
                         }`}
-                >
+                        >
                     <span className="text-xs font-medium text-slate-500 dark:text-text-secondary">
                         {label}
                     </span>
@@ -63,16 +62,39 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                 </div>
 
                 <div
-                    className={`p-4 text-base leading-relaxed shadow-sm ${isUser
-                        ? 'rounded-2xl rounded-br-sm bg-primary text-white shadow-md'
-                        : 'rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-surface-dark text-slate-800 dark:text-black'
-                        }`}
-                >
-                    {content}
+                    className={`relative isolate text-base leading-relaxed shadow-sm text-wrap whitespace-pre-wrap ${isUser
+                        ? 'rounded-2xl rounded-br-sm shadow-md'
+                        : 'rounded-2xl rounded-bl-sm'
+                    }`}
+                    style={{
+                        fontWeight: isUser ? 'var(--message-user-font-weight, 400)' : 'var(--message-assistant-font-weight, 400)',
+                        color: isUser
+                        ? 'var(--message-user-text, #ffffff)'
+                        : 'var(--message-assistant-text, inherit)'
+                    }}
+                    >
+                    {/* Background Layer */}
+                    <div
+                        className={`absolute inset-0 w-full h-full ${isUser ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl rounded-bl-sm'}`}
+                        style={{
+                            opacity: isUser ? 'var(--message-user-opacity, 1)' : 'var(--message-assistant-opacity, 1)',
+                            background: isUser
+                            ? 'var(--message-user-bg, var(--color-primary, #137fec))'
+                            : 'var(--message-assistant-bg, #f1f5f9)',
+                        }}
+                        />
+
+                    {/* Content Layer */}
+                    <div className={`relative z-10 p-2 ${isUser ? 'text-end' : 'text-start'}`}>
+                        {content}
+                    </div>
+
+                    
                 </div>
+            {isUser && <Avatar config={messageAvatar} className={isUser ? 'flex justify-end' : 'flex justify-start'} />}
+            {!isUser && <Avatar config={messageAvatar} />}
             </div>
 
-            {isUser && <Avatar config={messageAvatar} />}
         </div>
     );
 };
