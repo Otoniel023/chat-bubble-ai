@@ -9,9 +9,8 @@ import type {
     ChatMessage,
     ChatContextValue,
 } from './ChatBubble.types';
-import { storage } from '../../utils/storage';
-import { processSSEStream, createStreamController } from '../../utils/streaming';
-import { API_BASE_URL } from '../../utils/api';
+import { createStreamController } from '../../utils/streaming';
+import { agentService } from '../../services/agent.service';
 
 export const ChatBubbleContext = createContext<ChatContextValue | undefined>(undefined);
 
@@ -22,6 +21,7 @@ interface ChatBubbleProviderProps {
 
 export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
     children,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     agentId,
 }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -39,73 +39,16 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
         onComplete: () => void,
         onError: (err: Error) => void,
     ): Promise<void> => {
-        const token = storage.getAccessToken();
-        if (!token) {
-            throw new Error('No access token found. Please login first.');
-        }
-
         // Create abort controller for this request
         const streamCtrl = createStreamController();
         abortControllerRef.current = streamCtrl;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/agents/stream`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    message,
-                    agent_id: agentId,
-                }),
-                signal: streamCtrl.signal,
-            });
-
-            if (!response.ok) {
-                // Handle token refresh if 401
-                if (response.status === 401) {
-                    const refreshToken = storage.getRefreshToken();
-                    if (refreshToken) {
-                        try {
-                            const refreshResponse = await fetch(
-                                `${API_BASE_URL}/auth/refresh`,
-                                {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        accessToken: token,
-                                        refreshToken,
-                                    }),
-                                }
-                            );
-
-                            if (refreshResponse.ok) {
-                                const data = await refreshResponse.json();
-                                storage.setAccessToken(data.accessToken);
-                                if (data.refreshToken) {
-                                    storage.setRefreshToken(data.refreshToken);
-                                }
-                                // Retry with new token
-                                return sendMessageStreamInternal(message, onChunk, onComplete, onError);
-                            }
-                        } catch {
-                            storage.clearAuth();
-                            throw new Error('Session expired. Please login again.');
-                        }
-                    }
-                    storage.clearAuth();
-                    throw new Error('Authentication failed. Please login again.');
-                }
-                throw new Error(`API request failed with status ${response.status}`);
-            }
-
-            // processSSEStream expects Response and StreamCallbacks with onChunk/onComplete/onError
-            await processSSEStream(response, {
-                onChunk,
-                onComplete,
-                onError,
-            });
+            await agentService.sendMessageStream(
+                message,
+                { onChunk, onComplete, onError },
+                streamCtrl.signal
+            );
         } catch (err: unknown) {
             if (err instanceof DOMException && err.name === 'AbortError') {
                 onComplete();
@@ -202,7 +145,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
                 setIsLoading(false);
             }
         },
-        [agentId]
+        []
     );
 
     const clearMessages = useCallback(() => {

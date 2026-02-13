@@ -33,7 +33,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         text: isUser ? 'U' : undefined,
         icon: isUser ? undefined : 'smart_toy',
         backgroundColor: isUser ? 'bg-slate-200 dark:bg-slate-700' : 'bg-primary/10',
-        textColor: isUser ? 'text-slate-700 dark:text-slate-200' : 'text-primary',
+        textColor: isUser ? 'text-slate-700 dark:text-black-200' : 'text-black',
         size: 'sm',
     };
 
@@ -65,7 +65,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                 <div
                     className={`p-4 text-base leading-relaxed shadow-sm ${isUser
                         ? 'rounded-2xl rounded-br-sm bg-primary text-white shadow-md'
-                        : 'rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-surface-dark text-slate-800 dark:text-white'
+                        : 'rounded-2xl rounded-bl-sm bg-slate-100 dark:bg-surface-dark text-slate-800 dark:text-black'
                         }`}
                 >
                     {content}

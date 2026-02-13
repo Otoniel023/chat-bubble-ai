@@ -33,13 +33,13 @@ function DebugPanel() {
 
 // Chat configuration
 const chatConfig: ChatBubbleConfig = {
-    darkMode: true,
+    darkMode: false,
     maxWidth: '900px',
     height: '100vh',
     theme: {
         colors: {
-            primary: '#6366f1',
-            primaryHover: '#4f46e5',
+            primary: '#ff8800',
+            primaryHover: '#e67a00',
         },
         fonts: {
             family: "'Inter', sans-serif",
@@ -55,28 +55,28 @@ const chatConfig: ChatBubbleConfig = {
     header: {
         avatar: {
             type: 'icon',
-            icon: 'smart_toy',
-            backgroundColor: 'bg-indigo-500/20',
-            textColor: 'text-indigo-400',
+            icon: 'support_agent',
+            backgroundColor: 'bg-orange-100',
+            textColor: 'text-orange-600',
         },
-        title: 'ChatBubble Playground',
-        subtitle: 'Testing the component locally',
+        title: 'Dominicana Tours',
+        subtitle: 'Nº1 en Viajes al Caribe',
         actions: [
             {
                 id: 'settings',
                 icon: 'settings',
-                ariaLabel: 'Settings',
-                onClick: () => alert('Settings clicked!'),
+                ariaLabel: 'Configuración',
+                onClick: () => alert('Configuración clickeada!'),
             },
         ],
     },
     input: {
-        placeholder: 'Type something to test...',
+        placeholder: 'Escribe tu consulta aquí...',
         showAttachment: true,
         showEmoji: true,
         showVoice: false,
         showSendButton: true,
-        disclaimer: '🧪 Playground mode — messages connect to your configured API.',
+        disclaimer: 'Asistente Virtual de Dominicana Tours',
     },
 };
 

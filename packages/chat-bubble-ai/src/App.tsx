@@ -10,6 +10,16 @@ function ChatApp() {
   // Chat configuration
   const chatConfig: ChatBubbleConfig = {
     darkMode: true,
+    theme: {
+      cssVariables: {
+        colorPrimary: '#ff6b6b',
+        colorPrimaryHover: '#ff5252',
+        colorBackgroundDark: '#1a1a2e',
+        colorSurfaceDark: '#16213e',
+        colorBorderDark: '#0f3460',
+        fontSans: 'Inter, system-ui, sans-serif',
+      },
+    },
     header: {
       avatar: {
         type: 'icon',

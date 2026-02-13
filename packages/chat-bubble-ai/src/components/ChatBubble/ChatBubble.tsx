@@ -64,6 +64,43 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
             ...theme?.fonts,
             sizes: { ...defaultTheme.fonts.sizes, ...theme?.fonts?.sizes },
         },
+        cssVariables: {
+            ...defaultTheme.cssVariables,
+            ...theme?.cssVariables,
+        },
+    };
+
+    // Build CSS variables object for inline styles
+    const buildCssVariables = (): React.CSSProperties => {
+        const vars: Record<string, string> = {};
+        
+        if (mergedTheme.cssVariables) {
+            const { cssVariables } = mergedTheme;
+            
+            // Map camelCase to kebab-case CSS variables
+            if (cssVariables.colorPrimary) vars['--color-primary'] = cssVariables.colorPrimary;
+            if (cssVariables.colorPrimaryHover) vars['--color-primary-hover'] = cssVariables.colorPrimaryHover;
+            if (cssVariables.colorBackgroundLight) vars['--color-background-light'] = cssVariables.colorBackgroundLight;
+            if (cssVariables.colorBackgroundDark) vars['--color-background-dark'] = cssVariables.colorBackgroundDark;
+            if (cssVariables.colorSurfaceLight) vars['--color-surface-light'] = cssVariables.colorSurfaceLight;
+            if (cssVariables.colorSurfaceDark) vars['--color-surface-dark'] = cssVariables.colorSurfaceDark;
+            if (cssVariables.colorBorderLight) vars['--color-border-light'] = cssVariables.colorBorderLight;
+            if (cssVariables.colorBorderDark) vars['--color-border-dark'] = cssVariables.colorBorderDark;
+            if (cssVariables.colorTextSecondary) vars['--color-text-secondary'] = cssVariables.colorTextSecondary;
+            if (cssVariables.colorTextTertiary) vars['--color-text-tertiary'] = cssVariables.colorTextTertiary;
+            if (cssVariables.fontSans) vars['--font-sans'] = cssVariables.fontSans;
+            if (cssVariables.animateBounce) vars['--animate-bounce'] = cssVariables.animateBounce;
+        }
+        
+        // Backward compatibility: support old color properties
+        if (mergedTheme.colors.primary && !mergedTheme.cssVariables?.colorPrimary) {
+            vars['--color-primary'] = mergedTheme.colors.primary;
+        }
+        if (mergedTheme.colors.primaryHover && !mergedTheme.cssVariables?.colorPrimaryHover) {
+            vars['--color-primary-hover'] = mergedTheme.colors.primaryHover;
+        }
+        
+        return vars as React.CSSProperties;
     };
 
     // Apply dark mode class to container
@@ -106,16 +143,12 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
         <div
             id="chat-bubble-container"
             className={`flex flex-col overflow-hidden ${darkMode ? 'dark' : ''} ${className}`}
-            style={
-                {
-                    maxWidth,
-                    height,
-                    fontFamily: mergedTheme.fonts.family,
-                    '--color-primary': mergedTheme.colors.primary,
-                    '--color-primary-hover':
-                        mergedTheme.colors.primaryHover || mergedTheme.colors.primary,
-                } as React.CSSProperties
-            }
+            style={{
+                maxWidth,
+                height,
+                fontFamily: mergedTheme.fonts.family,
+                ...buildCssVariables(),
+            } as React.CSSProperties}
         >
             {/* Header */}
             {header && <ChatHeader config={header} />}
@@ -150,7 +183,7 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
             </main>
 
             {/* Input */}
-            {input && <ChatInput config={input} />}
+            {input && <ChatInput  config={input} />}
         </div>
     );
 };

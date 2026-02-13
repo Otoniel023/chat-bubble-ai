@@ -3,112 +3,49 @@
  * Handles all AI agent-related API calls
  */
 
-import { API_BASE_URL } from '../utils/api';
 import { storage } from '../utils/storage';
 import { processSSEStream } from '../utils/streaming';
 import type {
-  AgentStreamRequest,
   StreamCallbacks,
 } from '../types/agent.types';
 
 export class AgentService {
-  private baseUrl: string;
-
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
-  }
-
-  /**
-   * Get authorization headers with JWT token
-   */
-  private getAuthHeaders(): HeadersInit {
-    const token = storage.getAccessToken();
-
-    if (!token) {
-      throw new Error('Not authenticated. Please login first.');
-    }
-
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
-  }
-
-  /**
-   * Attempt to refresh tokens when receiving a 401 response.
-   * Returns the new access token on success, or clears auth and throws on failure.
-   */
-  private async handleTokenRefresh(): Promise<string> {
-    const accessToken = storage.getAccessToken();
-    const refreshToken = storage.getRefreshToken();
-
-    if (!refreshToken || !accessToken) {
-      storage.clearAuth();
-      throw new Error('Session expired. Please login again.');
-    }
-
-    const response = await fetch(`${this.baseUrl}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessToken, refreshToken }),
-    });
-
-    if (!response.ok) {
-      storage.clearAuth();
-      throw new Error('Session expired. Please login again.');
-    }
-
-    const data = await response.json();
-    storage.setAccessToken(data.accessToken);
-    storage.setRefreshToken(data.refreshToken);
-    return data.accessToken;
-  }
+  constructor() {}
 
   /**
    * Send a message to the agent with streaming response
-   * POST /agents/run-stream
+   * POST https://ai.grupovdt.com/api/agents/stream/domi
    */
   async sendMessageStream(
     message: string,
     callbacks: StreamCallbacks,
     signal?: AbortSignal
   ): Promise<void> {
-    const requestBody: AgentStreamRequest = { message };
+    // Get or create conversation ID
+    let conversationId = storage.getConversationId();
+    if (!conversationId) {
+      conversationId = crypto.randomUUID();
+      storage.setConversationId(conversationId);
+    }
+
+    const requestBody = {
+      message,
+      conversationId
+    };
+
+    const API_KEY = 'dev-test-key-2026';
+    const STREAM_URL = 'https://localhost:7133/api/agents/stream/domi';
 
     try {
-      const response = await fetch(`${this.baseUrl}/agents/run-stream`, {
+      const response = await fetch(STREAM_URL, {
         method: 'POST',
-        headers: this.getAuthHeaders(),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+        },
         body: JSON.stringify(requestBody),
         signal,
       });
-
-      // Handle 401 - attempt token refresh and retry
-      if (response.status === 401) {
-        const newToken = await this.handleTokenRefresh();
-
-        const retryResponse = await fetch(`${this.baseUrl}/agents/run-stream`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${newToken}`,
-          },
-          body: JSON.stringify(requestBody),
-          signal,
-        });
-
-        if (!retryResponse.ok) {
-          const contentType = retryResponse.headers.get('content-type');
-          if (contentType?.includes('application/json')) {
-            const errorData = await retryResponse.json();
-            throw new Error(errorData.error || `HTTP error! status: ${retryResponse.status}`);
-          }
-          throw new Error(`HTTP error! status: ${retryResponse.status}`);
-        }
-
-        await processSSEStream(retryResponse, callbacks);
-        return;
-      }
 
       if (!response.ok) {
         // Try to parse error message
@@ -139,9 +76,10 @@ export class AgentService {
    * Check if user is authenticated before making requests
    */
   isAuthenticated(): boolean {
-    return !!storage.getAccessToken();
+    // Agent chat no longer requires user authentication
+    return true;
   }
 }
 
 // Export singleton instance
-export const agentService = new AgentService(API_BASE_URL);
+export const agentService = new AgentService();

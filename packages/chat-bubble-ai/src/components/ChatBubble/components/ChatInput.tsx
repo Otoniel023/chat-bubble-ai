@@ -122,7 +122,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={handleKeyDown}
                             disabled={isLoading}
-                            className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-text-secondary text-base py-4 disabled:opacity-50"
+                            className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-slate-800 dark:text-black placeholder:text-slate-400 dark:placeholder:text-text-secondary text-base py-4 disabled:opacity-50"
                         />
 
                         {/* Right Actions & Send Button */}

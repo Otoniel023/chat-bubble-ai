@@ -51,6 +51,17 @@ export async function processSSEStream(
             return;
           }
 
+          // Check for error message from server
+          if (data.startsWith('{"error":')) {
+            try {
+              const errorData = JSON.parse(data);
+              callbacks.onError(new Error(errorData.error));
+              return;
+            } catch {
+              // If parse fails, treat as normal chunk
+            }
+          }
+
           // Send chunk to callback
           callbacks.onChunk(data);
         }

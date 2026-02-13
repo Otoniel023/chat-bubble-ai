@@ -40,7 +40,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ config, className = '' }
                             aria-label={action.ariaLabel}
                             className="flex size-10 cursor-pointer items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-surface-dark text-slate-600 dark:text-white transition-colors"
                         >
-                            <span className="material-symbols-outlined">{action.icon}</span>
+                            <span className="material-symbols-outlined ">{action.icon}</span>
                         </button>
                     ))}
             </div>

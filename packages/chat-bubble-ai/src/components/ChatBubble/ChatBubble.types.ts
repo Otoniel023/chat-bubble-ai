@@ -1,8 +1,41 @@
 /**
+ * CSS Color type for better TypeScript autocomplete
+ */
+export type CSSColor = string & { __brand?: 'CSSColor' };
+
+/**
+ * CSS Variables configuration
+ * All variables from index.css @theme block
+ */
+export interface CSSVariables {
+  // Colors
+  colorPrimary?: CSSColor;
+  colorPrimaryHover?: CSSColor;
+  colorBackgroundLight?: CSSColor;
+  colorBackgroundDark?: CSSColor;
+  colorSurfaceLight?: CSSColor;
+  colorSurfaceDark?: CSSColor;
+  colorBorderLight?: CSSColor;
+  colorBorderDark?: CSSColor;
+  colorTextSecondary?: CSSColor;
+  colorTextTertiary?: CSSColor;
+  
+  // Fonts
+  fontSans?: string;
+  
+  // Animations
+  animateBounce?: string;
+}
+
+/**
  * Theme configuration for the chat bubble
  */
 export interface ChatTheme {
+    // CSS Variables - NEW: Preferred way to customize styles
+    cssVariables?: CSSVariables;
+
     // Background colors
+    /** @deprecated Use cssVariables.colorBackgroundLight and cssVariables.colorBackgroundDark instead */
     backgrounds: {
         light: string;
         dark: string;
@@ -11,6 +44,7 @@ export interface ChatTheme {
     };
 
     // Primary and accent colors
+    /** @deprecated Use cssVariables.colorPrimary and cssVariables.colorPrimaryHover instead */
     colors: {
         primary: string;
         primaryHover?: string;
@@ -20,6 +54,7 @@ export interface ChatTheme {
     };
 
     // Text colors
+    /** @deprecated Use cssVariables.colorTextSecondary and cssVariables.colorTextTertiary instead */
     text: {
         primary: string;
         secondary: string;
@@ -28,6 +63,7 @@ export interface ChatTheme {
     };
 
     // Border colors
+    /** @deprecated Use cssVariables.colorBorderLight and cssVariables.colorBorderDark instead */
     borders: {
         light: string;
         dark: string;
@@ -48,6 +84,7 @@ export interface ChatTheme {
     };
 
     // Fonts
+    /** @deprecated Use cssVariables.fontSans instead */
     fonts: {
         family: string;
         sizes: {
@@ -195,6 +232,21 @@ export interface ChatBubbleConfig {
  * Default theme configuration
  */
 export const defaultTheme: ChatTheme = {
+    // Default CSS Variables matching index.css @theme
+    cssVariables: {
+        colorPrimary: '#137fec',
+        colorPrimaryHover: '#0d6edb',
+        colorBackgroundLight: '#f6f7f8',
+        colorBackgroundDark: '#101922',
+        colorSurfaceLight: '#ffffff',
+        colorSurfaceDark: '#283039',
+        colorBorderLight: '#e2e8f0',
+        colorBorderDark: '#283039',
+        colorTextSecondary: '#9dabb9',
+        colorTextTertiary: '#6b7a8a',
+        fontSans: 'Inter, system-ui, -apple-system, sans-serif',
+        animateBounce: 'bounce 1.4s infinite',
+    },
     backgrounds: {
         light: '#f6f7f8',
         dark: '#101922',

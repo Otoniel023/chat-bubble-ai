@@ -50,8 +50,16 @@ export const storage = {
     window.dispatchEvent(new CustomEvent('auth-cleared'));
   },
 
-  // Check if user is authenticated
   isAuthenticated: (): boolean => {
     return !!storage.getAccessToken();
+  },
+
+  // Conversation session management
+  getConversationId: (): string | null => {
+    return sessionStorage.getItem('chat_conversation_id');
+  },
+
+  setConversationId: (id: string): void => {
+    sessionStorage.setItem('chat_conversation_id', id);
   },
 };
