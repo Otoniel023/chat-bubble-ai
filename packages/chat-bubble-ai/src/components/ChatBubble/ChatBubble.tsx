@@ -10,6 +10,7 @@ import type {
 } from './ChatBubble.types';
 import { defaultTheme } from './ChatBubble.types';
 import { useChatBubble } from './useChatBubble';
+import { agentService } from '../../services/agent.service';
 import { ChatHeader } from './components/ChatHeader';
 import { ChatMessage } from './components/ChatMessage';
 import { ChatInput } from './components/ChatInput';
@@ -33,7 +34,16 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
         height = '100vh',
         className = '',
         darkMode = true,
+        url,
+        token,
     } = config;
+
+    // Configure agent service
+    useEffect(() => {
+        if (url || token) {
+            agentService.configure(url, token);
+        }
+    }, [url, token]);
 
     // Get messages from ChatBubbleContext
     const { messages, isTyping } = useChatBubble();

@@ -3,14 +3,27 @@
  * Handles all AI agent-related API calls
  */
 
-import { storage } from '../utils/storage';
+
 import { processSSEStream } from '../utils/streaming';
 import type {
   StreamCallbacks,
 } from '../types/agent.types';
 
 export class AgentService {
+  private conversationId: string | null = null;
+
+  private apiKey: string = '';
+  private streamUrl: string = '';
+
   constructor() {}
+
+  /**
+   * Configure the agent service with custom URL and token
+   */
+  configure(url?: string, token?: string) {
+    if (url) this.streamUrl = url;
+    if (token) this.apiKey = token;
+  }
 
   /**
    * Send a message to the agent with streaming response
@@ -21,20 +34,18 @@ export class AgentService {
     callbacks: StreamCallbacks,
     signal?: AbortSignal
   ): Promise<void> {
-    // Get or create conversation ID
-    let conversationId = storage.getConversationId();
-    if (!conversationId) {
-      conversationId = crypto.randomUUID();
-      storage.setConversationId(conversationId);
+    // Get or create conversation ID for this session
+    if (!this.conversationId) {
+      this.conversationId = crypto.randomUUID();
     }
 
     const requestBody = {
       message,
-      conversationId
+      conversationId: this.conversationId
     };
 
-    const API_KEY = 'dev-test-key-2026';
-    const STREAM_URL = 'https://192.168.20.98:7133/api/agents/stream/domi';
+    const API_KEY = this.apiKey;
+    const STREAM_URL = this.streamUrl;
 
     try {
       const response = await fetch(STREAM_URL, {

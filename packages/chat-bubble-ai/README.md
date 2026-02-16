@@ -1,310 +1,166 @@
-# Chat Bubble AI - Highly Customizable Chat UI Component
+# Chat Bubble AI Component
 
-A modern, highly customizable chat bubble UI component system built with React, TypeScript, and Tailwind CSS. Perfect for creating professional chat interfaces with full dark mode support and extensive theming options.
+A highly customizable, React-based chat bubble component designed for easy integration with AI agents.
 
 ## Features
 
-- **Fully Typed with TypeScript** - Complete type safety and IntelliSense support
-- **Dark Mode Support** - Beautiful dark and light themes out of the box
-- **Highly Customizable** - Theme colors, avatars, buttons, styling, and more
-- **Modern Design** - Based on contemporary chat UI patterns with smooth animations
-- **Responsive** - Works seamlessly on desktop and mobile devices
-- **Modular Architecture** - Use individual components or the complete chat bubble
-- **Material Icons** - Built-in support for Material Symbols
-- **Custom Scrollbar** - Styled scrollbar that matches your theme
-
-## Components
-
-### Main Components
-
-- **ChatBubble** - Main container component that orchestrates all parts
-- **ChatHeader** - Customizable header with avatar, title, subtitle, and action buttons
-- **ChatMessage** - Message component for both user and assistant messages
-- **ChatInput** - Input area with attachment, emoji, voice, and send buttons
-- **TypingIndicator** - Animated typing indicator
-- **DateSeparator** - Smart date separator (Today, Yesterday, etc.)
-- **Avatar** - Flexible avatar component (icon, image, or text)
+- 💬 **Streaming Support**: Built-in support for streaming AI responses.
+- 🎨 **Theming**: Fully customizable themes with support for dark mode and CSS variables.
+- 📱 **Responsive**: optimized for both desktop and mobile views.
+- 🔌 **Easy Integration**: Simple configuration for API endpoints and authentication.
+- 🧩 **Flexible Components**: Use as a full-page chat, an embedded widget, or a floating bubble.
 
 ## Installation
 
 ```bash
-npm install
+npm install chat-bubble-ai
+# or
+yarn add chat-bubble-ai
 ```
 
-## Usage
+## Basic Usage
 
-### Basic Example
+### 1. Embedded Chat Instance
+
+Use the `ChatBubbleComponent` wrapped in `ChatBubbleProvider` for a standard chat interface.
 
 ```tsx
-import { ChatBubble } from './components/ChatBubble';
-import type { ChatBubbleConfig } from './types/chat.types';
+import React from "react";
+import {
+  ChatBubbleProvider,
+  ChatBubbleComponent,
+  ChatBubbleConfig,
+} from "chat-bubble-ai";
 
-function App() {
+const App = () => {
   const config: ChatBubbleConfig = {
-    darkMode: true,
+    url: "https://api.your-service.com/stream", // Your AI Stream Endpoint
+    token: "your-api-key", // Optional API Key
+    darkMode: false, // Initial mode
     header: {
+      title: "AI Assistant",
+      subtitle: "Ask me anything about travel",
       avatar: {
-        type: 'icon',
-        icon: 'smart_toy',
-        showOnlineStatus: true,
+        type: "image",
+        src: "https://placehold.co/100x100?text=AI",
       },
-      title: 'Virtual Assistant',
-      subtitle: 'Always here to help',
-      actions: [
-        {
-          id: 'settings',
-          icon: 'settings',
-          ariaLabel: 'Settings',
-          onClick: () => console.log('Settings clicked'),
-        },
-      ],
-    },
-    messages: [
-      {
-        id: '1',
-        sender: 'assistant',
-        content: 'Hello! How can I help you?',
-        timestamp: new Date(),
-      },
-      {
-        id: '2',
-        sender: 'user',
-        content: 'I need help with my account.',
-        timestamp: new Date(),
-      },
-    ],
-    typingIndicator: {
-      show: true,
     },
     input: {
-      placeholder: 'Type a message...',
+      placeholder: "Type your message...",
+      showSendButton: true,
     },
   };
 
-  return <ChatBubble config={config} />;
-}
+  return (
+    <ChatBubbleProvider>
+      <div
+        style={{ height: "600px", width: "400px", border: "1px solid #ccc" }}
+      >
+        <ChatBubbleComponent config={config} />
+      </div>
+    </ChatBubbleProvider>
+  );
+};
 ```
 
-### Custom Theme
+### 2. Floating Chat Widget
+
+For a quick "support-style" chat bubble that floats in the corner of the screen.
 
 ```tsx
-const customConfig: ChatBubbleConfig = {
-  theme: {
-    colors: {
-      primary: '#ff6b6b',
-      primaryHover: '#ff5252',
-    },
-    backgrounds: {
-      dark: '#1a1a2e',
-      surfaceDark: '#16213e',
-    },
+import { FloatingChatWidget } from "chat-bubble-ai";
+
+const App = () => {
+  return (
+    <FloatingChatWidget
+      config={{
+        url: "https://api.your-service.com/stream",
+        token: "your-api-key",
+        header: {
+          title: "Support Bot",
+          avatar: { type: "icon", icon: "robot" },
+        },
+        launcher: {
+          icon: "message", // or imageUrl
+          color: "#137fec",
+        },
+      }}
+    />
+  );
+};
+```
+
+## Configuration (`ChatBubbleConfig`)
+
+The `config` prop handles all aspects of the chat instance:
+
+| Property   | Type               | Description                                                  |
+| ---------- | ------------------ | ------------------------------------------------------------ |
+| `url`      | `string`           | **Required**. The endpoint URL for the streaming AI service. |
+| `token`    | `string`           | Optional API key or auth token included in headers.          |
+| `darkMode` | `boolean`          | Toggle dark mode on load. Default: `true`.                   |
+| `theme`    | `ChatTheme`        | Deeply customize colors, fonts, and message styling.         |
+| `header`   | `ChatHeaderConfig` | Configure title, subtitle, and avatar.                       |
+| `input`    | `ChatInputConfig`  | Configure placeholder, buttons, and behavior.                |
+| `launcher` | `LauncherConfig`   | Configuration for the floating button (FloatingWidget only). |
+
+### Custom Styling (Theming)
+
+You can override specific styles using the `theme` property.
+
+```tsx
+const customTheme = {
+  cssVariables: {
+    colorPrimary: "#ff5722", // Change primary color to Orange
+    colorBackgroundLight: "#ffffff",
   },
-  // ... rest of config
-};
-```
-
-### Custom Avatar
-
-```tsx
-// Icon avatar
-const iconAvatar = {
-  type: 'icon',
-  icon: 'smart_toy',
-  backgroundColor: 'bg-blue-100',
-  textColor: 'text-blue-600',
-};
-
-// Image avatar
-const imageAvatar = {
-  type: 'image',
-  src: 'https://example.com/avatar.jpg',
-  alt: 'User avatar',
-  showOnlineStatus: true,
-};
-
-// Text avatar (initials)
-const textAvatar = {
-  type: 'text',
-  text: 'JD',
-  backgroundColor: 'bg-purple-100',
-  textColor: 'text-purple-600',
-};
-```
-
-## Configuration Options
-
-### ChatBubbleConfig
-
-```typescript
-interface ChatBubbleConfig {
-  theme?: Partial<ChatTheme>;
-  header?: ChatHeaderConfig;
-  input?: ChatInputConfig;
-  messages?: Message[];
-  typingIndicator?: TypingIndicatorConfig;
-  dateSeparator?: DateSeparatorConfig;
-  maxWidth?: string;
-  height?: string;
-  className?: string;
-  darkMode?: boolean;
-}
-```
-
-### Theme Configuration
-
-```typescript
-interface ChatTheme {
-  backgrounds: {
-    light: string;
-    dark: string;
-    surfaceLight: string;
-    surfaceDark: string;
-  };
-  colors: {
-    primary: string;
-    primaryHover?: string;
-    success?: string;
-    error?: string;
-    warning?: string;
-  };
-  text: {
-    primary: string;
-    secondary: string;
-    tertiary: string;
-    onPrimary: string;
-  };
-  // ... more options
-}
-```
-
-## Customization Examples
-
-### Change Primary Color
-
-```tsx
-const config: ChatBubbleConfig = {
-  theme: {
-    colors: {
-      primary: '#10b981', // Green
+  messageBubbles: {
+    user: {
+      background: "#ff5722", // Match primary
+      textColor: "#ffffff",
+      borderRadius: "20px 20px 0 20px",
+    },
+    assistant: {
+      background: "#f1f1f1",
+      textColor: "#333333",
+      borderRadius: "20px 20px 20px 0",
     },
   },
 };
+
+<ChatBubbleComponent config={{ ...config, theme: customTheme }} />;
 ```
 
-### Custom Input Actions
+## API Requirements
 
-```tsx
-const config: ChatBubbleConfig = {
-  input: {
-    actions: [
-      {
-        id: 'custom-action',
-        icon: 'attach_file',
-        ariaLabel: 'Attach file',
-        position: 'left',
-        onClick: () => handleFileAttach(),
-      },
-    ],
-    showEmoji: false,
-    showVoice: false,
-  },
-};
+The component expects a streaming response (Server-Sent Events) from the configured `url`. The backend should stream chunks of text.
+
+- **Method**: `POST`
+- **Headers**:
+  - `Content-Type`: `application/json`
+  - `x-api-key`: `[token]` (if provided)
+- **Body**:
+  ```json
+  {
+    "message": "User's message",
+    "conversationId": "uuid-string"
+  }
+  ```
+
+## HTML & Image Rendering
+
+The chat supports enriched HTML rendering. To render images or cards, simply return standard HTML from your API:
+
+```html
+<div>
+  <h3>Hotel Paradise</h3>
+  <img src="https://example.com/hotel.jpg" class="w-full rounded-lg" />
+  <p>Price: $200</p>
+</div>
 ```
 
-### Custom Header Actions
-
-```tsx
-const config: ChatBubbleConfig = {
-  header: {
-    actions: [
-      {
-        id: 'refresh',
-        icon: 'refresh',
-        ariaLabel: 'Refresh chat',
-        onClick: () => refreshChat(),
-      },
-      {
-        id: 'close',
-        icon: 'close',
-        ariaLabel: 'Close chat',
-        onClick: () => closeChat(),
-      },
-    ],
-  },
-};
-```
-
-## TypeScript Support
-
-All components are fully typed. Import types as needed:
-
-```tsx
-import type {
-  ChatBubbleConfig,
-  Message,
-  AvatarConfig,
-  ChatTheme,
-} from './types/chat.types';
-```
-
-## Development
-
-```bash
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Lint code
-npm run lint
-```
-
-## Project Structure
-
-```
-src/
-├── components/
-│   ├── Avatar.tsx
-│   ├── ChatBubble.tsx
-│   ├── ChatHeader.tsx
-│   ├── ChatInput.tsx
-│   ├── ChatMessage.tsx
-│   ├── DateSeparator.tsx
-│   ├── TypingIndicator.tsx
-│   └── index.ts
-├── types/
-│   └── chat.types.ts
-├── App.tsx
-└── index.css
-```
-
-## Next Steps (Phase 2)
-
-The current implementation focuses on UI components and styling. Phase 2 will add:
-
-- Message state management
-- Real-time messaging functionality
-- WebSocket integration
-- Message persistence
-- File upload handling
-- Emoji picker
-- Voice input
-- And more...
-
-## Design
-
-The design is based on modern chat interfaces with:
-- Clean, professional aesthetic
-- Smooth animations and transitions
-- Responsive layout
-- Accessible components
-- Material Design icons
+**Note**: Do not escape HTML tags (e.g., don't send `&lt;div&gt;`, send `<div>`).
 
 ## License
 
 MIT
-
-## Contributing
-
-This is a template project designed to be highly customizable for different use cases. Feel free to fork and adapt to your needs!

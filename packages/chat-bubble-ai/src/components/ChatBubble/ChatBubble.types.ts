@@ -275,6 +275,8 @@ export interface ChatBubbleConfig {
     height?: string;
     className?: string;
     darkMode?: boolean;
+    url?: string;
+    token?: string;
 }
 
 /**
