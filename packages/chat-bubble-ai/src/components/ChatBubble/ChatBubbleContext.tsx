@@ -23,7 +23,8 @@ interface ChatBubbleProviderProps {
 export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
     children,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    agentId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // agentId,
     apiErrorMessage,
 }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);

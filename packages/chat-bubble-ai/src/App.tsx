@@ -31,12 +31,7 @@ function ChatApp() {
       title: 'Virtual Assistant',
       subtitle: isAuthenticated ? `Connected as ${user?.email}` : 'Always here to help',
       actions: [
-        {
-          id: 'settings',
-          icon: 'settings',
-          ariaLabel: 'Settings',
-          onClick: () => console.log('Settings clicked'),
-        },
+       
         {
           id: 'logout',
           icon: 'logout',

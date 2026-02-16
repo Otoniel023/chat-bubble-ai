@@ -226,6 +226,8 @@ export interface LauncherConfig {
     imageUrl?: string;
     icon?: string; // Optional override for icon name if not using image
     color?: string; // Optional override for background color
+    animationImages?: string[]; // Array of image URLs to animate
+    animationInterval?: number; // Time in milliseconds between frames
 }
 
 /**
@@ -250,6 +252,8 @@ export interface NotificationConfig {
     className?: string;
     style?: React.CSSProperties;
     onClick?: () => void;
+    width?: string | number;
+    height?: string | number;
 }
 
 /**

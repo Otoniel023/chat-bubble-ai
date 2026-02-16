@@ -78,15 +78,43 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
         },
     };
 
+    // Animation logic
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    useEffect(() => {
+        if (!config.launcher?.animationImages || config.launcher.animationImages.length === 0) {
+            return;
+        }
+
+        // Only animate if notification is visible
+        if (!showNotification) {
+            setCurrentImageIndex(0); // Reset for next time
+            return;
+        }
+
+        const intervalTime = config.launcher.animationInterval || 400;
+        const intervalId = setInterval(() => {
+            setCurrentImageIndex((prev) =>
+                (prev + 1) % (config.launcher?.animationImages?.length || 1)
+            );
+        }, intervalTime);
+
+        return () => clearInterval(intervalId);
+    }, [config.launcher?.animationImages, config.launcher?.animationInterval, showNotification]);
+
+    const launcherImage = (showNotification && config.launcher?.animationImages?.length)
+        ? config.launcher.animationImages[currentImageIndex]
+        : config.launcher?.imageUrl;
+
     return (
-        <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-4">
+        <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-1">
             {/* Chat Window Container */}
             <div
                 className={`
                     origin-bottom-right transition-all duration-300 ease-out
                     flex flex-col
                     bg-white dark:bg-slate-900
-                    rounded-2xl shadow-2xl
+                    rounded-md shadow-2xl
                     overflow-hidden
                     border border-gray-200 dark:border-gray-800
                     ${isOpen
@@ -103,7 +131,18 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                     <ChatBubbleComponent config={widgetConfig} />
                 </div>
             </div>
-
+            {/* Red tail triangle */}
+            {(isOpen) && <div
+                className="relative -bottom-6 right-4 z-50 mr-4"
+                style={{
+                    width: 0,
+                    height: 0,
+                    borderLeft: '8px solid transparent',
+                    borderRight: '8px solid transparent',
+                    borderTop: '10px solid #fb2c36'
+                }}
+            >
+            </div>}
             {/* Toggle Button */}
             <button
                 onClick={toggleOpen}
@@ -126,14 +165,14 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
             >
                 <div
                     className={`
-                         inset-0 flex items-center justify-center
+                         absolute inset-0 flex items-center justify-center
                         transition-all duration-300
                         ${isOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}
                     `}
                 >
-                    {config.launcher?.imageUrl ? (
+                    {launcherImage ? (
                         <img
-                            src={config.launcher.imageUrl}
+                            src={launcherImage}
                             alt="Chat"
                             className="w-full h-full object-cover"
                         />
@@ -158,28 +197,39 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
             {/* Notification Bubble */}
             {config.notification && showNotification && !isOpen && (
                 <div
-                    className="pointer-events-none absolute w-[230px] h-[220px] -top-[190px] md:top[-100px] right-0 font-semibold z-10 flex flex-row justify-end items-end"
-                    style={{ transform: 'translateX(-10px) translateY(-40px)' }}
+                    className="overflow-visible pointer-events-none gap-1 rounded-md flex-col absolute -top-[190px] md:top[-100px] right-0 font-semibold z-10 flex justify-end items-end"
+                    style={{
+                        transform: 'translateX(-20px) translateY(-210px)',
+                        width: config.notification.width || '230px',
+                        minHeight: config.notification.height || '220px',
+                        ...config.notification.style
+                    }}
                 >
-                    <div className="relative h-max bg-white p-2 border rounded shadow-md w-full text-start text-base overflow-visible">
-                        {config.notification.message || '¡Hola! Soy Domi, tu asistente virtual en DominicanaTours. ¡Estoy aquí para cualquier duda que puedas tener!'}
+                    {config.notification.message &&
 
-                        {/* Red tail triangle */}
+
                         <div
-                            className="absolute -bottom-[15px] right-4 z-50"
-                            style={{
-                                width: 0,
-                                height: 0,
-                                borderLeft: '10px solid transparent',
-                                borderRight: '10px solid transparent',
-                                borderTop: '15px solid #ffffff'
-                            }}
+                            className=" text-wrap relative rounded-md bg-white p-2 border border-gray-200 shadow-md h-max w-full text-center text-base overflow-visible"
+
                         >
+                            {config.notification.message}
+                            <div className=" bg-white top-1 right-4 absolute"
+                                style={{
+                                    clipPath: "polygon(2% 0, 75% 0, 100% 100%)",
+                                    transform: "translateY(-10%)",
+                                    height: "30px",
+                                    width: "30px"
+                                }}>
+
+                            </div>
                         </div>
-                    </div>
+
+                    }
+
 
                 </div>
             )}
+
         </div>
     );
 };

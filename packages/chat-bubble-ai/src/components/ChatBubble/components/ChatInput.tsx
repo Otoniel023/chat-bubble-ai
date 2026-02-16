@@ -15,7 +15,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         placeholder = 'Type a message...',
         actions = [],
         showSendButton = true,
-        showAttachment = true,
+        // showAttachment = true,
         showEmoji = false,
         showVoice = true,
         disclaimer = 'AI can make mistakes. Consider checking important information.',
@@ -30,21 +30,21 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     const isSendDisabled = !inputValue.trim() || isLoading;
 
     // Separate actions by position
-    const leftActions = actions.filter((a) => a.position === 'left' && a.visible !== false);
+    // const leftActions = actions.filter((a) => a.position === 'left' && a.visible !== false);
     const rightActions = actions.filter((a) => a.position === 'right' && a.visible !== false);
 
     // Default actions
-    const defaultLeftActions: InputActionButton[] = showAttachment
-        ? [
-            {
-                id: 'attachment',
-                icon: 'add_circle',
-                ariaLabel: 'Add attachment',
-                position: 'left' as const,
-                onClick: undefined,
-            },
-        ]
-        : [];
+    // const defaultLeftActions: InputActionButton[] = showAttachment
+    //     ? [
+    //         {
+    //             id: 'attachment',
+    //             icon: 'add_circle',
+    //             ariaLabel: 'Add attachment',
+    //             position: 'left' as const,
+    //             onClick: undefined,
+    //         },
+    //     ]
+    //     : [];
 
     const defaultRightActions: InputActionButton[] = [
         ...(showEmoji
@@ -71,7 +71,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             : []),
     ];
 
-    const finalLeftActions = leftActions.length > 0 ? leftActions : defaultLeftActions;
+    // const finalLeftActions = leftActions.length > 0 ? leftActions : defaultLeftActions;
     const finalRightActions = rightActions.length > 0 ? rightActions : defaultRightActions;
 
     const handleSubmit = async (e: FormEvent) => {
@@ -102,7 +102,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 <form onSubmit={handleSubmit}>
                     <div className="relative px-4 flex items-center w-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 ring-2 ring-transparent focus-within:ring-primary/30 focus-within:border-primary/50 transition-all duration-300 hover:shadow-2xl group">
                         {/* Left Actions */}
-                        
+
 
                         {/* Text Input */}
                         <input

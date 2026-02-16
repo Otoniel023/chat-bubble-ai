@@ -75,15 +75,10 @@ const chatConfig: ChatBubbleConfig = {
             backgroundColor: 'bg-orange-100',
             textColor: 'text-orange-600',
         },
-        title: 'DominicanaTours agent',
+        title: 'DominicanaTours',
         subtitle: 'Nº1 en Viajes al Caribe',
         actions: [
-            {
-                id: 'settings',
-                icon: 'settings',
-                ariaLabel: 'Configuración',
-                onClick: () => alert('Configuración clickeada!'),
-            },
+
         ],
     },
     input: {
@@ -97,7 +92,12 @@ const chatConfig: ChatBubbleConfig = {
         sendButtonDisabledColor: '#cbd5e1',
     },
     launcher: {
-        imageUrl: 'https://photos.dominicanatours.com/imagenes/domi.webp',
+        imageUrl: 'https://photos.dominicanatours.com/imagenes/domi.webp', // Fallback or static
+        animationImages: [
+            "https://photos.dominicanatours.com/imagenes/domi-1.webp",
+            "https://photos.dominicanatours.com/imagenes/domi.webp"
+        ],
+        animationInterval: 400,
         color: '#ff8800',
     },
     feedback: {
@@ -107,7 +107,7 @@ const chatConfig: ChatBubbleConfig = {
         title: '¡Hola! Soy Domi, tu asistente virtual en DominicanaTours.',
         message: '¡Estoy aquí para cualquier duda que puedas tener!',
         // icon: 'waving_hand', // Icon removed to match design closer, or keep it if preferred. Design didn't have icon besides text.
-        interval: 50000,
+        interval: 60000,
         duration: 10000,
     }
 };
