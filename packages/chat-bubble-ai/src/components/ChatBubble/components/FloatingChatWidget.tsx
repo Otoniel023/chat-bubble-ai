@@ -123,8 +123,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                     }
                 `}
                 style={{
-                    width: isOpen ? 'min(400px, 90vw)' : 'min(400px, 90vw)',
-                    height: isOpen ? 'min(600px, 80vh)' : '0px',
+                    width: isOpen ? 'min(450px, 90vw)' : 'min(400px, 90vw)',
+                    height: isOpen ? 'min(650px, 80vh)' : '0px',
                 }}
             >
                 <div className="h-full w-full">
