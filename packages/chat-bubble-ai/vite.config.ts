@@ -7,42 +7,38 @@ import { fileURLToPath } from 'url'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
-// https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  // Library build mode (npm publish)
+  // 📦 LIBRARY MODE (npm)
   if (mode === 'lib') {
     return {
       plugins: [
         react(),
         tailwindcss(),
         dts({
-          include: ['src'],
-          tsconfigPath: './tsconfig.app.json',
+          entryRoot: 'src',
           insertTypesEntry: true,
-        }),
+          tsconfigPath: 'tsconfig.build.json'
+        })
       ],
       build: {
         lib: {
           entry: resolve(__dirname, 'src/index.ts'),
           name: 'ChatBubbleAI',
-          formats: ['es', 'umd'],
-          fileName: 'chat-bubble-ai',
+          formats: ['es', 'cjs'],
+          fileName: (format) =>
+            format === 'es' ? 'index.js' : 'index.cjs'
         },
         rollupOptions: {
           external: ['react', 'react-dom', 'react/jsx-runtime'],
           output: {
-            globals: {
-              react: 'React',
-              'react-dom': 'ReactDOM',
-              'react/jsx-runtime': 'jsxRuntime',
-            },
-          },
-        },
-      },
+            assetFileNames: 'style.css'
+          }
+        }
+      }
     }
   }
 
-  // Default dev/build mode (demo app)
+  // 🧪 DEV / DEMO APP
   return {
     plugins: [react(), tailwindcss()],
     server: {

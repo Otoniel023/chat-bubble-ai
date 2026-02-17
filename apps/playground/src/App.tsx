@@ -109,7 +109,12 @@ const chatConfig: ChatBubbleConfig = {
         // icon: 'waving_hand', // Icon removed to match design closer, or keep it if preferred. Design didn't have icon besides text.
         interval: 60000,
         duration: 10000,
-    }
+    },
+
+    url: 'https://ai.grupovdt.com/api/agents/stream/domi',
+    token: '4XPNFnS4Ew4k8dkDhw+6sqMAPBkaT5KjZcUt4NqGsz0=',
+
+
 };
 
 function App() {
@@ -118,7 +123,7 @@ function App() {
             {/* Dummy Landing Page Content */}
             <div className="container mx-auto px-6 py-12">
                 <header className="flex justify-between items-center mb-20">
-                    <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+                    <div className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-500 to-purple-600">
                         ChatBubble AI
                     </div>
                     <nav className="hidden md:flex gap-6 text-sm font-medium text-slate-500 dark:text-slate-400">

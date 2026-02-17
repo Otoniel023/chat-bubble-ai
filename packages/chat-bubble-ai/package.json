@@ -1,27 +1,22 @@
 {
-  "name": "@castillodev25/chat-bubble-ai",
-  "version": "0.1.0",
-  "type": "module",
-  "description": "A customizable AI chat bubble component for React",
-  "main": "dist/chat-bubble-ai.umd.cjs",
-  "module": "dist/chat-bubble-ai.js",
+  "name": "chat-bubble-ai",
+  "version": "0.1.1",
+ "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
-      "import": "./dist/chat-bubble-ai.js",
-      "require": "./dist/chat-bubble-ai.umd.cjs"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./style.css": "./dist/style.css"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "build:lib": "vite build --mode lib",
+    "build": "tsc -b && vite build --mode lib",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -30,6 +25,7 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
+    "@castillodev25/chat-bubble-ai": "^0.1.0",
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
     "tailwindcss": "4.1"
