@@ -1,5 +1,5 @@
 {
-  "name": "chat-bubble-ai",
+  "name": "@castillodev25/chat-bubble-ai",
   "version": "0.1.0",
   "type": "module",
   "description": "A customizable AI chat bubble component for React",
@@ -9,9 +9,9 @@
   "exports": {
     ".": {
       "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/chat-bubble-ai.js",
-      "require": "./dist/chat-bubble-ai.umd.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/chat-bubble-ai.umd.cjs"
     },
     "./style.css": "./dist/style.css"
   },
