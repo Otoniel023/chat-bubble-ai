@@ -1,8 +1,21 @@
 {
-  "name": "@castillodev25/chat-bubble-ai",
-  "version": "0.1.0",
+  "name": "chat-bubble-ai",
+  "version": "0.1.3",
   "type": "module",
   "description": "A customizable AI chat bubble component for React",
+  "keywords": [
+    "react",
+    "chat",
+    "bubble",
+    "ai",
+    "widget",
+    "component",
+    "ui",
+    "tailwindcss",
+    "typescript"
+  ],
+  "author": "Emmanuel Castillo",
+  "license": "MIT",
   "main": "dist/chat-bubble-ai.umd.cjs",
   "module": "dist/chat-bubble-ai.js",
   "types": "dist/index.d.ts",
@@ -13,7 +26,7 @@
       "import": "./dist/chat-bubble-ai.js",
       "require": "./dist/chat-bubble-ai.umd.cjs"
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist/chat-bubble-ai.css"
   },
   "files": [
     "dist"
