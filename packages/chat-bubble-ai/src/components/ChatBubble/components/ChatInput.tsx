@@ -175,13 +175,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                         transition: 'color 0.2s ease, background 0.2s ease',
                                     }}
                                 >
-                                    {typeof action.icon === 'string' ? (
+                                    {/* {typeof action.icon === 'string' ? (
                                         <span style={{ fontSize: '20px' }}>
                                             {action.icon}
                                         </span>
                                     ) : (
                                         action.icon
-                                    )}
+                                    )} */}
                                 </button>
                             ))}
 

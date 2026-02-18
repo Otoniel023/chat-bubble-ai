@@ -226,6 +226,18 @@ export interface DateSeparatorConfig {
 }
 
 /**
+ * Mobile pill configuration — renders the launcher as a side-tab pill on mobile
+ */
+export interface MobilePillConfig {
+    /** Background color/gradient of the pill. Default: '#ff8800' */
+    color?: string;
+    /** Bottom offset. Default: '1dvh' */
+    bottom?: string;
+    /** Breakpoint in px below which the pill is shown. Default: 768 */
+    breakpoint?: number;
+}
+
+/**
  * Launcher button configuration for floating widget
  */
 export interface LauncherConfig {
@@ -234,6 +246,8 @@ export interface LauncherConfig {
     color?: string; // Optional override for background color
     animationImages?: string[]; // Array of image URLs to animate
     animationInterval?: number; // Time in milliseconds between frames
+    /** When set, renders a pill-shaped side-tab on mobile instead of the standard floating button */
+    mobilePill?: MobilePillConfig;
 }
 
 /**

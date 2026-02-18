@@ -85,6 +85,11 @@ const chatConfig: ChatBubbleConfig = {
         ],
         animationInterval: 400,
         color: '#ff8800',
+        mobilePill: {
+            color: 'linear-gradient(135deg, #ff8800 0%, #ed5c00 100%)',
+            bottom: '1dvh',
+            breakpoint: 768,
+        },
     },
     feedback: {
         apiError: '¡Oops! Parece que estoy teniendo problemas para conectar. Por favor intenta de nuevo en unos momentos.',

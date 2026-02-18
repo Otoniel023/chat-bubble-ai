@@ -1,14 +1,16 @@
-# Chat Bubble AI Component
+# chat-bubble-ai
 
-A highly customizable, React-based chat bubble component designed for easy integration with AI agents.
+A highly customizable, zero-dependency-on-icon-fonts React chat bubble component designed for seamless integration with AI streaming agents.
 
 ## Features
 
-- 💬 **Streaming Support**: Built-in support for streaming AI responses.
-- 🎨 **Theming**: Fully customizable themes with support for dark mode and CSS variables.
-- 📱 **Responsive**: optimized for both desktop and mobile views.
-- 🔌 **Easy Integration**: Simple configuration for API endpoints and authentication.
-- 🧩 **Flexible Components**: Use as a full-page chat, an embedded widget, or a floating bubble.
+- 💬 **Streaming Support** — Built-in Server-Sent Events (SSE) streaming for real-time AI responses.
+- 🎨 **Fully Themeable** — CSS variables, dark mode, custom message bubble styles, and fonts.
+- 📦 **Zero Font Dependencies** — All icons are inline SVGs; no Material Symbols or icon font required.
+- 🖼️ **HTML Rendering** — Assistant messages support rich HTML (cards, images, lists, etc.).
+- 📱 **Responsive** — Works on desktop and mobile out of the box.
+- 🧩 **Multiple Modes** — Use as a full-page chat, a floating bubble, or an embedded iframe widget.
+- 🔌 **Easy Integration** — One config object controls everything: URL, auth, theme, header, and input.
 
 ## Installation
 
@@ -18,148 +20,241 @@ npm install chat-bubble-ai
 yarn add chat-bubble-ai
 ```
 
-## Basic Usage
+### Import CSS
 
-### 1. Embedded Chat Instance
+Import the bundled stylesheet once in your app entry point:
 
-Use the `ChatBubbleComponent` wrapped in `ChatBubbleProvider` for a standard chat interface.
+```ts
+import 'chat-bubble-ai/dist/chat-bubble-ai.css';
+```
+
+---
+
+## Usage
+
+### 1. Full-page / Embedded Chat
+
+Wrap `ChatBubbleComponent` in a `ChatBubbleProvider` and place it inside any sized container.
 
 ```tsx
-import React from "react";
 import {
   ChatBubbleProvider,
   ChatBubbleComponent,
-  ChatBubbleConfig,
-} from "chat-bubble-ai";
+} from 'chat-bubble-ai';
+import type { ChatBubbleConfig } from 'chat-bubble-ai';
 
-const App = () => {
-  const config: ChatBubbleConfig = {
-    url: "https://api.your-service.com/stream", // Your AI Stream Endpoint
-    token: "your-api-key", // Optional API Key
-    darkMode: false, // Initial mode
-    header: {
-      title: "AI Assistant",
-      subtitle: "Ask me anything about travel",
-      avatar: {
-        type: "image",
-        src: "https://placehold.co/100x100?text=AI",
-      },
+const config: ChatBubbleConfig = {
+  url: 'https://api.your-service.com/stream', // SSE streaming endpoint
+  token: 'your-api-key',                      // Optional auth token
+  darkMode: false,
+  header: {
+    title: 'AI Assistant',
+    subtitle: 'Ask me anything',
+    avatar: {
+      type: 'image',
+      src: 'https://example.com/avatar.webp',
     },
-    input: {
-      placeholder: "Type your message...",
-      showSendButton: true,
-    },
-  };
+  },
+  input: {
+    placeholder: 'Type your message...',
+    showSendButton: true,
+    showVoice: false,
+  },
+};
 
+export default function App() {
   return (
     <ChatBubbleProvider>
-      <div
-        style={{ height: "600px", width: "400px", border: "1px solid #ccc" }}
-      >
+      <div style={{ height: '600px', width: '400px' }}>
         <ChatBubbleComponent config={config} />
       </div>
     </ChatBubbleProvider>
   );
-};
+}
 ```
+
+---
 
 ### 2. Floating Chat Widget
 
-For a quick "support-style" chat bubble that floats in the corner of the screen.
+A self-contained floating button that expands into a chat panel — no provider needed.
 
 ```tsx
-import { FloatingChatWidget } from "chat-bubble-ai";
+import { FloatingChatWidget } from 'chat-bubble-ai';
 
-const App = () => {
+export default function App() {
   return (
     <FloatingChatWidget
       config={{
-        url: "https://api.your-service.com/stream",
-        token: "your-api-key",
+        url: 'https://api.your-service.com/stream',
+        token: 'your-api-key',
         header: {
-          title: "Support Bot",
-          avatar: { type: "icon", icon: "robot" },
+          title: 'Support Bot',
         },
         launcher: {
-          icon: "message", // or imageUrl
-          color: "#137fec",
+          color: '#137fec',        // Button background color
+          // imageUrl: '/bot.png', // Optional custom launcher image
         },
       }}
     />
   );
-};
+}
 ```
 
-## Configuration (`ChatBubbleConfig`)
+---
 
-The `config` prop handles all aspects of the chat instance:
+### 3. Embedded Widget (Iframe-friendly)
 
-| Property   | Type               | Description                                                  |
-| ---------- | ------------------ | ------------------------------------------------------------ |
-| `url`      | `string`           | **Required**. The endpoint URL for the streaming AI service. |
-| `token`    | `string`           | Optional API key or auth token included in headers.          |
-| `darkMode` | `boolean`          | Toggle dark mode on load. Default: `true`.                   |
-| `theme`    | `ChatTheme`        | Deeply customize colors, fonts, and message styling.         |
-| `header`   | `ChatHeaderConfig` | Configure title, subtitle, and avatar.                       |
-| `input`    | `ChatInputConfig`  | Configure placeholder, buttons, and behavior.                |
-| `launcher` | `LauncherConfig`   | Configuration for the floating button (FloatingWidget only). |
-
-### Custom Styling (Theming)
-
-You can override specific styles using the `theme` property.
+Designed for embedding inside an iframe. Notifies the parent window via `postMessage` when the chat opens or closes.
 
 ```tsx
-const customTheme = {
-  cssVariables: {
-    colorPrimary: "#ff5722", // Change primary color to Orange
-    colorBackgroundLight: "#ffffff",
-  },
-  messageBubbles: {
-    user: {
-      background: "#ff5722", // Match primary
-      textColor: "#ffffff",
-      borderRadius: "20px 20px 0 20px",
+import { EmbeddedChatWidget } from 'chat-bubble-ai';
+
+export default function App() {
+  return (
+    <EmbeddedChatWidget
+      config={{
+        url: 'https://api.your-service.com/stream',
+        token: 'your-api-key',
+      }}
+      showNotificationBadge={true}
+      notificationCount={3}
+    />
+  );
+}
+```
+
+---
+
+## Configuration Reference
+
+### `ChatBubbleConfig`
+
+| Property       | Type               | Default     | Description                                              |
+| -------------- | ------------------ | ----------- | -------------------------------------------------------- |
+| `url`          | `string`           | —           | **Required.** SSE streaming endpoint URL.                |
+| `token`        | `string`           | —           | Optional API key sent as `x-api-key` header.             |
+| `darkMode`     | `boolean`          | `true`      | Enable dark mode on load.                                |
+| `height`       | `string`           | `'100vh'`   | Container height (CSS value).                            |
+| `maxWidth`     | `string`           | `'100%'`    | Container max-width (CSS value).                         |
+| `theme`        | `ChatTheme`        | —           | Customize colors, fonts, and message bubble styles.      |
+| `header`       | `ChatHeaderConfig` | —           | Title, subtitle, avatar, and action buttons.             |
+| `input`        | `ChatInputConfig`  | —           | Placeholder, send button, emoji, voice, and more.        |
+| `launcher`     | `LauncherConfig`   | —           | Floating button color, icon, and notification animation. |
+| `notification` | `NotificationConfig` | —         | Notification bubble message, interval, and duration.     |
+| `style`        | `React.CSSProperties` | —        | Additional inline styles for the root container.         |
+
+---
+
+### `AvatarConfig`
+
+| Property    | Type                        | Description                                      |
+| ----------- | --------------------------- | ------------------------------------------------ |
+| `type`      | `'image' \| 'icon' \| 'text'` | How to render the avatar.                      |
+| `src`       | `string`                    | Image URL (when `type: 'image'`).                |
+| `icon`      | `React.ReactNode \| string` | SVG component or string (when `type: 'icon'`).   |
+| `text`      | `string`                    | Initials or short text (when `type: 'text'`).    |
+| `size`      | `'sm' \| 'md' \| 'lg'`     | Avatar size. Default: `'md'`.                    |
+| `backgroundColor` | `string`              | CSS color for the avatar background.             |
+| `textColor` | `string`                    | CSS color for text/icon inside the avatar.       |
+
+---
+
+### Theming (`ChatTheme`)
+
+Override colors and message bubble styles via the `theme` prop:
+
+```tsx
+const config: ChatBubbleConfig = {
+  // ...
+  theme: {
+    cssVariables: {
+      colorPrimary: '#137fec',
+      colorBackgroundLight: '#f8fafc',
+      colorSurfaceLight: '#ffffff',
+      colorBorderLight: '#e2e8f0',
     },
-    assistant: {
-      background: "#f1f1f1",
-      textColor: "#333333",
-      borderRadius: "20px 20px 20px 0",
+    messageBubbles: {
+      user: {
+        background: '#137fec',
+        textColor: '#ffffff',
+      },
+      assistant: {
+        background: '#f1f5f9',
+        textColor: '#1e293b',
+      },
     },
   },
 };
-
-<ChatBubbleComponent config={{ ...config, theme: customTheme }} />;
 ```
+
+#### Available CSS Variables
+
+| Variable                  | Description                        |
+| ------------------------- | ---------------------------------- |
+| `colorPrimary`            | Primary accent color               |
+| `colorPrimaryHover`       | Primary color on hover             |
+| `colorBackgroundLight`    | Chat area background (light mode)  |
+| `colorBackgroundDark`     | Chat area background (dark mode)   |
+| `colorSurfaceLight`       | Header/input surface (light mode)  |
+| `colorSurfaceDark`        | Header/input surface (dark mode)   |
+| `colorBorderLight`        | Border color (light mode)          |
+| `colorBorderDark`         | Border color (dark mode)           |
+| `colorTextSecondary`      | Secondary text color               |
+| `fontSans`                | Font family override               |
+
+---
 
 ## API Requirements
 
-The component expects a streaming response (Server-Sent Events) from the configured `url`. The backend should stream chunks of text.
+The component expects a **Server-Sent Events (SSE)** streaming response from the configured `url`.
 
 - **Method**: `POST`
 - **Headers**:
-  - `Content-Type`: `application/json`
-  - `x-api-key`: `[token]` (if provided)
+  - `Content-Type: application/json`
+  - `x-api-key: [token]` *(if `token` is provided)*
 - **Body**:
   ```json
   {
-    "message": "User's message",
-    "conversationId": "uuid-string"
+    "message": "User's message text",
+    "conversationId": "uuid-v4-string"
   }
   ```
+- **Response**: A stream of text chunks (SSE format), which are appended to the assistant message in real time.
 
-## HTML & Image Rendering
+---
 
-The chat supports enriched HTML rendering. To render images or cards, simply return standard HTML from your API:
+## HTML Rendering
+
+Assistant messages support rich HTML. Return HTML directly from your API — the component renders it with `dangerouslySetInnerHTML`:
 
 ```html
 <div>
   <h3>Hotel Paradise</h3>
-  <img src="https://example.com/hotel.jpg" class="w-full rounded-lg" />
-  <p>Price: $200</p>
+  <img src="https://example.com/hotel.jpg" style="width:100%;border-radius:8px" />
+  <p>Price: <strong>$200/night</strong></p>
 </div>
 ```
 
-**Note**: Do not escape HTML tags (e.g., don't send `&lt;div&gt;`, send `<div>`).
+> **Note:** Send raw HTML tags — do **not** HTML-encode them (e.g., send `<div>`, not `&lt;div&gt;`).
+
+---
+
+## Changelog
+
+### v0.1.7
+- Replaced all Material Symbols icon font references with inline SVG components.
+- Replaced all Tailwind CSS utility classes with inline styles for zero-CSS-framework dependency at runtime.
+- Fixed `Avatar` size mapping (was passing Tailwind class strings to `style.width/height`).
+- Default assistant avatar now uses a configurable image URL instead of an SVG icon.
+- `EmbeddedChatWidget` rewritten to use inline styles (removed dependency on `ChatBubble.styles.css` classes).
+
+### v0.1.6
+- Added `styles.css` with Tailwind import to ensure CSS is bundled in `dist/chat-bubble-ai.css`.
+- Created `icons.tsx` with inline SVG components (`SendIcon`, `CloseIcon`, `ChatBubbleIcon`, `MoodIcon`, `MicIcon`).
+- Updated `ChatBubble.types.ts` to accept `React.ReactNode` for icon props.
+
+---
 
 ## License
 
