@@ -196,13 +196,13 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                             fontFamily: config.theme?.cssVariables?.fontSans || 'system-ui, sans-serif',
                             ...config.style,
                         }}
-                    >
+                        >
                         <style>{`
                             @keyframes slideUp {
                                 from { transform: translateY(100%); opacity: 0; }
                                 to   { transform: translateY(0);    opacity: 1; }
-                            }
-                        `}</style>
+                                }
+                                `}</style>
                         <ChatBubbleComponent config={widgetConfig} />
                     </div>
                 )}
@@ -220,11 +220,73 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                         transition: 'transform 300ms ease',
                         transform: pillVisible ? 'translateX(0)' : 'translateX(calc(100% - 52px))',
                         fontFamily: config.theme?.cssVariables?.fontSans || 'system-ui, sans-serif',
-                        maxWidth: '100vw',
+                        maxWidth: '100dvw',
                         overflow: 'visible',
                     }}
-                >
+                    >
                     {/* Pill container */}
+                    {/* Notification bubble */}
+                    {config.notification && showNotification && !isOpen && pillVisible && (
+                        <div style={{
+                            position: 'relative',
+                            background: '#ffffff',
+                            borderRadius: '10px',
+                            padding: bubbleCardPadding,
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.14)',
+                            border: '1px solid #e5e7eb',
+                            maxWidth: 'min(280px, calc(100dvw - 16px))',
+                            width: 'max-content',
+                            fontSize: '0.875rem',
+                            color: '#1f2937',
+                            pointerEvents: 'none',
+                            zIndex: baseZIndex + 2,
+                            alignSelf: 'flex-end',
+                            marginBottom: '8px',
+                            marginRight: '6px',
+                            boxSizing: 'border-box',
+                        }}>
+                            {/* Ping dot inside mobile bubble */}
+                            {showNotification && !isOpen && dotShow && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: dotTop,
+                                    right: dotRight,
+                                    width: `${dotWrapperSize}px`,
+                                    height: `${dotWrapperSize}px`,
+                                }}>
+                                    {/* Ripple ring */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        borderRadius: '50%',
+                                        background: dotRingColor,
+                                        animation: `${pingKeyframeName} ${dotAnimDuration}s ease-out infinite`,
+                                    }} />
+                                    {/* Solid dot */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '2px', left: '2px',
+                                        width: `${dotSize}px`, height: `${dotSize}px`,
+                                        borderRadius: '50%',
+                                        background: dotColor,
+                                        border: '2px solid white',
+                                    }} />
+                                </div>
+                            )}
+                            {config.notification.message}
+                            {/* Triangle pointer */}
+                            <div style={{
+                                position: 'absolute',
+                                bottom: '-8px',
+                                right: '20px',
+                                width: 0, height: 0,
+                                borderLeft: '8px solid transparent',
+                                borderRight: '8px solid transparent',
+                                borderTop: '8px solid #ffffff',
+                                filter: 'drop-shadow(0 2px 1px rgba(0,0,0,0.06))',
+                            }} />
+                        </div>
+                    )}
                     <div
                         style={{
                             display: 'flex',
@@ -338,68 +400,6 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                         </button>
                     </div>
 
-                    {/* Notification bubble */}
-                    {config.notification && showNotification && !isOpen && pillVisible && (
-                        <div style={{
-                            position: 'relative',
-                            background: '#ffffff',
-                            borderRadius: '10px',
-                            padding: bubbleCardPadding,
-                            boxShadow: '0 4px 16px rgba(0,0,0,0.14)',
-                            border: '1px solid #e5e7eb',
-                            maxWidth: 'min(280px, calc(100vw - 16px))',
-                            width: 'max-content',
-                            fontSize: '0.875rem',
-                            color: '#1f2937',
-                            pointerEvents: 'none',
-                            zIndex: baseZIndex + 2,
-                            alignSelf: 'flex-end',
-                            marginBottom: '8px',
-                            marginRight: '6px',
-                            boxSizing: 'border-box',
-                        }}>
-                            {/* Ping dot inside mobile bubble */}
-                            {showNotification && !isOpen && dotShow && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: dotTop,
-                                    right: dotRight,
-                                    width: `${dotWrapperSize}px`,
-                                    height: `${dotWrapperSize}px`,
-                                }}>
-                                    {/* Ripple ring */}
-                                    <div style={{
-                                        position: 'absolute',
-                                        inset: 0,
-                                        borderRadius: '50%',
-                                        background: dotRingColor,
-                                        animation: `${pingKeyframeName} ${dotAnimDuration}s ease-out infinite`,
-                                    }} />
-                                    {/* Solid dot */}
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '2px', left: '2px',
-                                        width: `${dotSize}px`, height: `${dotSize}px`,
-                                        borderRadius: '50%',
-                                        background: dotColor,
-                                        border: '2px solid white',
-                                    }} />
-                                </div>
-                            )}
-                            {config.notification.message}
-                            {/* Triangle pointer */}
-                            <div style={{
-                                position: 'absolute',
-                                bottom: '-8px',
-                                right: '20px',
-                                width: 0, height: 0,
-                                borderLeft: '8px solid transparent',
-                                borderRight: '8px solid transparent',
-                                borderTop: '8px solid #ffffff',
-                                filter: 'drop-shadow(0 2px 1px rgba(0,0,0,0.06))',
-                            }} />
-                        </div>
-                    )}
                 </div>
             </>
         );
@@ -435,8 +435,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                     opacity: isOpen ? 1 : 0,
                     transform: isOpen ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(16px)',
                     pointerEvents: isOpen ? 'auto' : 'none',
-                    width: isOpen ? 'min(450px, 90vw)' : 'min(400px, 90vw)',
-                    height: isOpen ? 'min(650px, 80vh)' : '0px',
+                    width: isOpen ? 'min(450px, 90dvw)' : 'min(400px, 90dvw)',
+                    height: isOpen ? 'min(650px, 80dvh)' : '0px',
                     marginBottom: isOpen ? '8px' : '0',
                 }}
             >

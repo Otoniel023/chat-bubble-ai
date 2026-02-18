@@ -20,16 +20,6 @@ npm install chat-bubble-ai
 yarn add chat-bubble-ai
 ```
 
-### Import CSS
-
-Import the bundled stylesheet once in your app entry point:
-
-```ts
-import 'chat-bubble-ai/dist/chat-bubble-ai.css';
-```
-
----
-
 ## Usage
 
 ### 1. Full-page / Embedded Chat

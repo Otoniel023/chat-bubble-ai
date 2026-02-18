@@ -32,7 +32,7 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
         input,
         dateSeparator,
         maxWidth = '100%',
-        height = '100vh',
+        height = '100dvh',
         className = '',
         style = {},
         darkMode = true,
