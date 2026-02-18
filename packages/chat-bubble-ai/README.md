@@ -141,8 +141,32 @@ export default function App() {
 | `header`       | `ChatHeaderConfig` | —           | Title, subtitle, avatar, and action buttons.             |
 | `input`        | `ChatInputConfig`  | —           | Placeholder, send button, emoji, voice, and more.        |
 | `launcher`     | `LauncherConfig`   | —           | Floating button color, icon, and notification animation. |
-| `notification` | `NotificationConfig` | —         | Notification bubble message, interval, and duration.     |
+| `notification` | `NotificationConfig` | —         | Notification bubble message, interval, duration, and dot styling. |
+| `initialMessage` | `string`         | —           | Initial greeting message shown by the assistant when chat opens. |
 | `style`        | `React.CSSProperties` | —        | Additional inline styles for the root container.         |
+
+---
+
+### `NotificationConfig`
+
+| Property   | Type                    | Default | Description                                      |
+| ---------- | ----------------------- | ------- | ------------------------------------------------ |
+| `message`  | `string`                | —       | **Required.** Text to show in the notification bubble. |
+| `interval` | `number`                | `30000` | Time in ms between notification appearances.     |
+| `duration` | `number`                | `5000`  | Time in ms the notification stays visible.       |
+| `dot`      | `NotificationDotConfig` | —       | Customization for the red notification dot.      |
+
+#### `NotificationDotConfig`
+
+| Property            | Type      | Default     | Description                                                                 |
+| ------------------- | --------- | ----------- | --------------------------------------------------------------------------- |
+| `show`              | `boolean` | `true`      | Show or hide the dot entirely.                                              |
+| `color`             | `string`  | `'#ef4444'` | Dot color (hex, rgb, etc.).                                                 |
+| `size`              | `number`  | `10`        | Dot diameter in pixels.                                                     |
+| `ringColor`         | `string`  | `color`     | Color of the animating ripple ring.                                         |
+| `animationDuration` | `number`  | `1.2`       | Animation cycle duration in seconds.                                        |
+| `animationScale`    | `number`  | `2.2`       | Max scale the ring reaches during animation.                                |
+| `bubblePosition`    | `object`  | `{ side: 'left', offset: '10px' }` | Position of the dot **inside** the notification message bubble. |
 
 ---
 
@@ -241,6 +265,14 @@ Assistant messages support rich HTML. Return HTML directly from your API — the
 ---
 
 ## Changelog
+
+### v0.1.9
+- Added `initialMessage` property to `ChatBubbleConfig` for custom welcome messages.
+- Added `NotificationDotConfig` to supported granular customization of the notification dot (color, size, animation, position).
+- Improved notification bubble positioning on mobile devices to prevent overflow.
+- Refactored `ChatBubbleProvider` to support message injection from config.
+
+
 
 ### v0.1.7
 - Replaced all Material Symbols icon font references with inline SVG components.

@@ -142,7 +142,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     const dotWrapperSize = dotSize + 4;
     // Bubble dot position
     const dotBubbleSide = dotCfg?.bubblePosition?.side ?? 'left';
-    const dotBubbleOffset = dotCfg?.bubblePosition?.offset ?? '10px';
+    // const dotBubbleOffset = dotCfg?.bubblePosition?.offset ?? '10px';
     // Card padding: leave room for the dot on whichever side it's on
     const dotBubblePad = dotShow ? `${dotWrapperSize + 8}px` : '10px';
     const bubbleCardPadding = dotBubbleSide === 'left'
