@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * CSS Color type for better TypeScript autocomplete
  */
@@ -108,7 +110,7 @@ export interface ChatTheme {
 export interface AvatarConfig {
     type: 'icon' | 'image' | 'text';
     src?: string; // For image type
-    icon?: string; // For icon type (e.g., Material Icons name)
+    icon?: string | React.ReactNode; // For icon type (e.g., Material Icons name or Component)
     text?: string; // For text type (initials)
     alt?: string;
     backgroundColor?: string;
@@ -122,7 +124,7 @@ export interface AvatarConfig {
  */
 export interface HeaderActionButton {
     id: string;
-    icon: string;
+    icon: string | React.ReactNode;
     ariaLabel: string;
     onClick?: () => void;
     visible?: boolean;
@@ -137,6 +139,8 @@ export interface ChatHeaderConfig {
     subtitle?: string;
     actions?: HeaderActionButton[];
     showBorder?: boolean;
+    style?: React.CSSProperties;
+    className?: string;
 }
 
 /**
@@ -179,7 +183,7 @@ export interface ChatMessage {
  */
 export interface InputActionButton {
     id: string;
-    icon: string;
+    icon: string | React.ReactNode;
     ariaLabel: string;
     onClick?: () => void;
     visible?: boolean;
@@ -200,6 +204,8 @@ export interface ChatInputConfig {
     maxLength?: number;
     sendButtonColor?: string; // Custom background color for send button (hex, rgb, etc.)
     sendButtonDisabledColor?: string; // Custom background color for disabled send button
+    style?: React.CSSProperties;
+    className?: string;
 }
 
 /**
@@ -224,7 +230,7 @@ export interface DateSeparatorConfig {
  */
 export interface LauncherConfig {
     imageUrl?: string;
-    icon?: string; // Optional override for icon name if not using image
+    icon?: string | React.ReactNode; // Optional override for icon name or component if not using image
     color?: string; // Optional override for background color
     animationImages?: string[]; // Array of image URLs to animate
     animationInterval?: number; // Time in milliseconds between frames
@@ -246,7 +252,7 @@ export type DeepPartial<T> = {
 export interface NotificationConfig {
     title?: string;
     message: string;
-    icon?: string;
+    icon?: string | React.ReactNode;
     interval?: number; // Time between appearances in ms (default: 60000)
     duration?: number; // Time visible in ms (default: 5000)
     className?: string;
@@ -277,6 +283,7 @@ export interface ChatBubbleConfig {
     darkMode?: boolean;
     url?: string;
     token?: string;
+    style?: React.CSSProperties;
 }
 
 /**

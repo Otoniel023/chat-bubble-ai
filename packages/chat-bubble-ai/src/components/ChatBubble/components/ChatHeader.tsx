@@ -8,29 +8,50 @@ interface ChatHeaderProps {
 }
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({ config, className = '' }) => {
-    const { avatar, title, subtitle, actions = [], showBorder = true } = config;
+    const { avatar, title, subtitle, actions = [], showBorder = true, style: configStyle } = config;
 
     return (
         <header
-            className={`flex items-center justify-between px-6 py-4 bg-surface-light dark:bg-background-dark z-10 ${showBorder ? 'border-b border-solid border-slate-200 dark:border-border-dark' : ''
-                } ${className}`}
+            className={className}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '1rem 1.5rem',
+                backgroundColor: 'var(--color-surface-light)',
+                zIndex: 10,
+                borderBottom: showBorder ? '1px solid var(--color-border-light)' : 'none',
+                ...configStyle,
+            }}
         >
-            <div className="flex items-center gap-4">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <Avatar config={avatar} />
 
                 <div>
-                    <h2 className="text-base font-bold leading-tight text-slate-900 dark:text-white">
+                    <h2 style={{
+                        marginTop: 0,
+                        marginBottom: 0,
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        lineHeight: 1.25,
+                        color: 'var(--color-text-primary, #0f172a)',
+                    }}>
                         {title}
                     </h2>
                     {subtitle && (
-                        <p className="text-slate-500 dark:text-text-secondary text-xs">
+                        <p style={{
+                            marginTop: 0,
+                            marginBottom: 0,
+                            color: 'var(--color-text-secondary, #64748b)',
+                            fontSize: '0.75rem',
+                        }}>
                             {subtitle}
                         </p>
                     )}
                 </div>
             </div>
 
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
                 {actions
                     .filter((action) => action.visible !== false)
                     .map((action) => (
@@ -38,9 +59,31 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ config, className = '' }
                             key={action.id}
                             onClick={action.onClick}
                             aria-label={action.ariaLabel}
-                            className="flex size-10 cursor-pointer items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-surface-dark text-slate-600 dark:text-white transition-colors"
+                            style={{
+                                display: 'flex',
+                                width: '2.5rem',
+                                height: '2.5rem',
+                                cursor: 'pointer',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: '9999px',
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'var(--color-text-secondary, #475569)',
+                                transition: 'background-color 0.2s, color 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--color-background-light, #f1f5f9)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
                         >
-                            <span className="material-symbols-outlined ">{action.icon}</span>
+                            {typeof action.icon === 'string' ? (
+                                <span style={{ fontSize: '20px' }}>{action.icon}</span>
+                            ) : (
+                                action.icon
+                            )}
                         </button>
                     ))}
             </div>

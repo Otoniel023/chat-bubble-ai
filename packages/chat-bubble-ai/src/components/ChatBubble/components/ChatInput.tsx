@@ -1,6 +1,7 @@
 import React, { useState, FormEvent } from 'react';
 import type { ChatInputConfig, InputActionButton } from '../ChatBubble.types';
 import { useChatBubble } from '../useChatBubble';
+import { SendIcon, MicIcon, MoodIcon } from './icons';
 
 interface ChatInputProps {
     config?: ChatInputConfig;
@@ -15,7 +16,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         placeholder = 'Type a message...',
         actions = [],
         showSendButton = true,
-        // showAttachment = true,
         showEmoji = false,
         showVoice = true,
         disclaimer = 'AI can make mistakes. Consider checking important information.',
@@ -26,32 +26,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
     const { sendMessage, isLoading } = useChatBubble();
     const [inputValue, setInputValue] = useState('');
+    const [isHoveringSend, setIsHoveringSend] = useState(false);
 
     const isSendDisabled = !inputValue.trim() || isLoading;
 
-    // Separate actions by position
-    // const leftActions = actions.filter((a) => a.position === 'left' && a.visible !== false);
     const rightActions = actions.filter((a) => a.position === 'right' && a.visible !== false);
-
-    // Default actions
-    // const defaultLeftActions: InputActionButton[] = showAttachment
-    //     ? [
-    //         {
-    //             id: 'attachment',
-    //             icon: 'add_circle',
-    //             ariaLabel: 'Add attachment',
-    //             position: 'left' as const,
-    //             onClick: undefined,
-    //         },
-    //     ]
-    //     : [];
 
     const defaultRightActions: InputActionButton[] = [
         ...(showEmoji
             ? [
                 {
                     id: 'emoji',
-                    icon: 'mood',
+                    icon: <MoodIcon />,
                     ariaLabel: 'Add emoji',
                     position: 'right' as const,
                     onClick: undefined,
@@ -62,7 +48,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             ? [
                 {
                     id: 'voice',
-                    icon: 'mic',
+                    icon: <MicIcon />,
                     ariaLabel: 'Voice input',
                     position: 'right' as const,
                     onClick: undefined,
@@ -71,17 +57,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             : []),
     ];
 
-    // const finalLeftActions = leftActions.length > 0 ? leftActions : defaultLeftActions;
     const finalRightActions = rightActions.length > 0 ? rightActions : defaultRightActions;
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-
         if (!inputValue.trim() || isLoading) return;
-
         const messageText = inputValue.trim();
-        setInputValue(''); // Clear input immediately
-
+        setInputValue('');
         try {
             await sendMessage(messageText);
         } catch (error) {
@@ -96,14 +78,52 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         }
     };
 
+    const getSendButtonBackground = () => {
+        if (isSendDisabled) {
+            if (sendButtonDisabledColor) return sendButtonDisabledColor;
+            if (sendButtonColor) return sendButtonColor;
+            return '#94a3b8';
+        }
+        if (sendButtonColor) return sendButtonColor;
+        return 'linear-gradient(135deg, #3b82f6, #4f46e5)';
+    };
+
+    const getSendButtonFilter = () => {
+        if (isSendDisabled && !sendButtonDisabledColor && sendButtonColor) {
+            return 'brightness(0.5) saturate(0.5)';
+        }
+        if (!isSendDisabled && isHoveringSend && sendButtonColor) {
+            return 'brightness(1.15)';
+        }
+        return 'none';
+    };
+
     return (
-        <footer className={`p-4 sm:px-6 pb-6 pt-3 bg-gradient-to-t from-slate-50/80 to-transparent dark:from-slate-900/80 dark:to-transparent backdrop-blur-sm ${className}`}>
-            <div className="max-w-[800px] mx-auto w-full">
+        <footer
+            style={{
+                padding: '0.75rem 1rem 1.5rem 1rem',
+                background: 'linear-gradient(to top, rgba(248, 250, 252, 0.9), transparent)',
+                backdropFilter: 'blur(8px)',
+            }}
+            className={className}
+        >
+            <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
                 <form onSubmit={handleSubmit}>
-                    <div className="relative px-4 flex items-center w-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 ring-2 ring-transparent focus-within:ring-primary/30 focus-within:border-primary/50 transition-all duration-300 hover:shadow-2xl group">
-                        {/* Left Actions */}
-
-
+                    <div
+                        style={{
+                            position: 'relative',
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: '100%',
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(12px)',
+                            borderRadius: '1rem',
+                            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+                            border: '1px solid rgba(226, 232, 240, 0.6)',
+                            padding: '0 0.5rem',
+                            transition: 'box-shadow 0.3s ease, border-color 0.3s ease',
+                        }}
+                    >
                         {/* Text Input */}
                         <input
                             type="text"
@@ -113,11 +133,27 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={handleKeyDown}
                             disabled={isLoading}
-                            className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-base py-4 px-2 disabled:opacity-50 font-normal"
+                            style={{
+                                flex: 1,
+                                background: 'transparent',
+                                border: 'none',
+                                outline: 'none',
+                                color: '#1e293b',
+                                fontSize: '1rem',
+                                padding: '1rem 0.5rem',
+                                opacity: isLoading ? 0.5 : 1,
+                            }}
                         />
 
                         {/* Right Actions & Send Button */}
-                        <div className="flex items-center pr-2 gap-1">
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                paddingRight: '0.25rem',
+                                gap: '0.25rem',
+                            }}
+                        >
                             {finalRightActions.map((action) => (
                                 <button
                                     key={action.id}
@@ -125,11 +161,27 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                     onClick={action.onClick}
                                     aria-label={action.ariaLabel}
                                     disabled={isLoading}
-                                    className="p-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-all duration-200 hidden sm:block disabled:opacity-50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg hover:scale-110 active:scale-95"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        padding: '0.5rem',
+                                        color: '#94a3b8',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        borderRadius: '0.5rem',
+                                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                                        opacity: isLoading ? 0.5 : 1,
+                                        transition: 'color 0.2s ease, background 0.2s ease',
+                                    }}
                                 >
-                                    <span className="material-symbols-outlined text-[20px]">
-                                        {action.icon}
-                                    </span>
+                                    {typeof action.icon === 'string' ? (
+                                        <span style={{ fontSize: '20px' }}>
+                                            {action.icon}
+                                        </span>
+                                    ) : (
+                                        action.icon
+                                    )}
                                 </button>
                             ))}
 
@@ -138,58 +190,60 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                     type="submit"
                                     aria-label="Send message"
                                     disabled={isSendDisabled}
-                                    className={`
-                                        relative ml-1 flex items-center justify-center
-                                        size-12 rounded-full
-                                        ${!sendButtonColor && (!isSendDisabled || !sendButtonDisabledColor) ? 'bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-600 hover:via-blue-700 hover:to-indigo-700' : ''}
-                                        text-white
-                                        shadow-lg ${!sendButtonColor ? 'shadow-blue-500/30' : 'shadow-black/20'}
-                                        hover:shadow-2xl ${!sendButtonColor ? 'hover:shadow-blue-600/50' : 'hover:shadow-black/40'}
-                                        transition-all duration-300
-                                        hover:scale-110 active:scale-95
-                                        disabled:opacity-100 disabled:cursor-not-allowed
-                                        disabled:hover:scale-100 disabled:shadow-md
-                                        ${!sendButtonColor && !sendButtonDisabledColor ? 'disabled:from-slate-400 disabled:via-slate-500 disabled:to-slate-500' : ''}
-                                        group/send
-                                        overflow-hidden
-                                        before:absolute before:inset-0
-                                        before:bg-gradient-to-br before:from-white/20 before:to-transparent
-                                        before:opacity-0 before:hover:opacity-100
-                                        before:transition-opacity before:duration-300
-                                    `}
+                                    onMouseEnter={() => setIsHoveringSend(true)}
+                                    onMouseLeave={() => setIsHoveringSend(false)}
                                     style={{
-                                        ...(sendButtonColor && { backgroundColor: sendButtonColor }),
-                                        ...(isSendDisabled && sendButtonDisabledColor && { backgroundColor: sendButtonDisabledColor }),
-                                        ...(isSendDisabled && !sendButtonDisabledColor && sendButtonColor && { filter: 'brightness(0.5) saturate(0.5)' }),
-                                        ...(isSendDisabled && sendButtonDisabledColor && { opacity: 1, filter: 'none' }) // Ensure no filter if specific color set
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (sendButtonColor && !isSendDisabled) {
-                                            e.currentTarget.style.filter = 'brightness(1.15)';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (sendButtonColor && !isSendDisabled) {
-                                            e.currentTarget.style.filter = 'brightness(1)';
-                                        }
+                                        position: 'relative',
+                                        marginLeft: '0.25rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '2.75rem',
+                                        height: '2.75rem',
+                                        borderRadius: '50%',
+                                        background: getSendButtonBackground(),
+                                        color: '#fff',
+                                        border: 'none',
+                                        cursor: isSendDisabled ? 'not-allowed' : 'pointer',
+                                        filter: getSendButtonFilter(),
+                                        boxShadow: isSendDisabled
+                                            ? '0 2px 8px rgba(0,0,0,0.1)'
+                                            : sendButtonColor
+                                                ? '0 4px 12px rgba(0,0,0,0.2)'
+                                                : '0 4px 12px rgba(59, 130, 246, 0.35)',
+                                        transform: isHoveringSend && !isSendDisabled ? 'scale(1.08)' : 'scale(1)',
+                                        transition: 'all 0.25s ease',
+                                        overflow: 'hidden',
                                     }}
                                 >
                                     {isLoading ? (
-                                        <span className="material-symbols-outlined text-[24px] animate-spin relative z-10">
-                                            progress_activity
-                                        </span>
+                                        <span
+                                            style={{
+                                                display: 'inline-block',
+                                                width: '20px',
+                                                height: '20px',
+                                                border: '2px solid rgba(255,255,255,0.3)',
+                                                borderTopColor: '#fff',
+                                                borderRadius: '50%',
+                                                animation: 'spin 0.8s linear infinite',
+                                            }}
+                                        />
                                     ) : (
-                                        <span className="material-symbols-outlined text-[24px] font-bold relative z-10 group-hover/send:rotate-45 transition-transform duration-300">
-                                            send
-                                        </span>
+                                        <SendIcon size={20} />
                                     )}
 
                                     {/* Pulse effect when enabled */}
                                     {!isSendDisabled && (
                                         <span
-                                            className="absolute inset-0 rounded-full animate-ping opacity-20"
-                                            style={sendButtonColor ? { backgroundColor: sendButtonColor } : { backgroundColor: '#3b82f6' }}
-                                        ></span>
+                                            style={{
+                                                position: 'absolute',
+                                                inset: 0,
+                                                borderRadius: '50%',
+                                                animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
+                                                opacity: 0.2,
+                                                backgroundColor: sendButtonColor ?? '#3b82f6',
+                                            }}
+                                        />
                                     )}
                                 </button>
                             )}
@@ -198,11 +252,29 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 </form>
 
                 {disclaimer && (
-                    <p className="text-center text-[11px] text-slate-500 dark:text-slate-400 mt-3 font-light tracking-wide">
+                    <p
+                        style={{
+                            textAlign: 'center',
+                            fontSize: '0.6875rem',
+                            color: '#94a3b8',
+                            marginTop: '0.75rem',
+                            fontWeight: 300,
+                            letterSpacing: '0.025em',
+                        }}
+                    >
                         {disclaimer}
                     </p>
                 )}
             </div>
+
+            <style>{`
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+                @keyframes ping {
+                    75%, 100% { transform: scale(2); opacity: 0; }
+                }
+            `}</style>
         </footer>
     );
 };

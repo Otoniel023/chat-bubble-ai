@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChatBubbleComponent } from '../ChatBubble';
 import type { ChatBubbleConfig } from '../ChatBubble.types';
-import '../ChatBubble.styles.css';
+import { ChatIcon, CloseIcon } from './icons';
 
 interface EmbeddedChatWidgetProps {
     config?: Partial<ChatBubbleConfig>;
@@ -39,20 +39,20 @@ export function EmbeddedChatWidget({
     // Merge default config with provided config
     const chatConfig: ChatBubbleConfig = {
         darkMode: true,
-        height: '100%', // Use 100% to fill the container instead of 100vh
+        height: '100%',
         header: {
             avatar: {
-                type: 'icon',
-                icon: 'smart_toy',
-                backgroundColor: 'bg-primary/20',
-                textColor: 'text-primary',
+                type: 'image',
+                src: 'https://photos.dominicanatours.com/imagenes/domi.webp',
+                backgroundColor: 'rgba(19, 127, 236, 0.1)',
+                textColor: '#137fec',
             },
             title: 'Virtual Assistant',
             subtitle: 'Always here to help',
             actions: [
                 {
                     id: 'close',
-                    icon: 'close',
+                    icon: <CloseIcon />,
                     ariaLabel: 'Close chat',
                     onClick: closeChat,
                 },
@@ -69,22 +69,72 @@ export function EmbeddedChatWidget({
     };
 
     return (
-        <div className={`chat-widget-container ${isOpen ? 'chat-open' : ''}`}>
-            {/* Chat Bubble */}
-            <div className={`chat-bubble-container ${isOpen ? 'open' : ''}`}>
+        <div
+            style={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                width: '100%',
+                height: '100%',
+            }}
+        >
+            {/* Chat Panel */}
+            <div
+                style={{
+                    width: '100%',
+                    height: isOpen ? '100%' : '0',
+                    overflow: 'hidden',
+                    transition: 'height 300ms ease',
+                    flexShrink: 1,
+                    flexGrow: isOpen ? 1 : 0,
+                }}
+            >
                 <ChatBubbleComponent config={chatConfig} />
             </div>
 
             {/* Toggle Button */}
             <button
-                className="chat-toggle-button"
                 onClick={toggleChat}
                 aria-label="Open chat"
                 type="button"
+                style={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    backgroundColor: '#4f46e5',
+                    color: '#ffffff',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    flexShrink: 0,
+                    marginTop: '8px',
+                }}
             >
-                <span className="material-symbols-outlined">chat</span>
+                <ChatIcon />
                 {showNotificationBadge && notificationCount > 0 && (
-                    <span className="chat-notification-badge">
+                    <span
+                        style={{
+                            position: 'absolute',
+                            top: '-4px',
+                            right: '-4px',
+                            minWidth: '1.25rem',
+                            height: '1.25rem',
+                            backgroundColor: '#ef4444',
+                            color: '#ffffff',
+                            borderRadius: '9999px',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '0 0.25rem',
+                        }}
+                    >
                         {notificationCount > 99 ? '99+' : notificationCount}
                     </span>
                 )}

@@ -3,6 +3,7 @@
  * Orchestrates the display of messages, header, input, and handles theming.
  */
 
+
 import React, { useEffect, useRef } from 'react';
 import type {
     ChatBubbleConfig,
@@ -33,6 +34,7 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
         maxWidth = '100%',
         height = '100vh',
         className = '',
+        style = {},
         darkMode = true,
         url,
         token,
@@ -164,18 +166,6 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
         return vars as React.CSSProperties;
     };
 
-    // Apply dark mode class to container
-    useEffect(() => {
-        const container = document.getElementById('chat-bubble-container');
-        if (container) {
-            if (darkMode) {
-                container.classList.add('dark');
-            } else {
-                container.classList.remove('dark');
-            }
-        }
-    }, [darkMode]);
-
     // Auto-scroll to latest message
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -200,26 +190,55 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
 
     const groupedMessages = groupMessagesByDate();
 
+    // Helper to get theme value
+    const getThemeVar = (lightVar: string, darkVar: string) => {
+        return darkMode ? `var(${darkVar})` : `var(${lightVar})`;
+    };
+
     return (
         <div
             id="chat-bubble-container"
-            className={`flex flex-col overflow-visible relative ${darkMode ? 'dark' : ''} ${className}`}
+            className={className} // Keep className for user override if needed
             style={{
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'visible',
+                position: 'relative',
                 maxWidth,
                 height,
                 fontFamily: mergedTheme.fonts.family,
                 ...buildCssVariables(),
-            } as React.CSSProperties}
+                ...style,
+            }}
         >
             {/* Header */}
             {header && <ChatHeader config={header} />}
 
             {/* Main Chat Area */}
             <main
-                className="flex-1 overflow-y-auto px-4  py-6 scroll-smooth bg-background-light dark:bg-background-dark bg-cover bg-center bg-no-repeat"
-                style={{ background: 'var(--chat-background)' }}
+                style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    paddingLeft: '1rem',
+                    paddingRight: '1rem',
+                    paddingTop: '1.5rem',
+                    paddingBottom: '1.5rem',
+                    scrollBehavior: 'smooth',
+                    backgroundColor: getThemeVar('--color-background-light', '--color-background-dark'),
+                    backgroundImage: 'var(--chat-background)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                }}
             >
-                <div className="max-w-[800px] mx-auto flex flex-col gap-6">
+                <div style={{
+                    maxWidth: '800px',
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1.5rem',
+                }}>
                     {Object.entries(groupedMessages).map(([dateKey, dateMessages]) => (
                         <React.Fragment key={dateKey}>
                             {/* Date Separator */}
@@ -244,12 +263,13 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
                     {/* Auto-scroll anchor */}
                     <div ref={messagesEndRef} />
                 </div>
-                
+
             </main>
 
             {/* Input */}
             {input && <ChatInput config={input} />}
-            
+
         </div>
     );
 };
+

@@ -57,8 +57,15 @@ export const DateSeparator: React.FC<DateSeparatorProps> = ({
     };
 
     return (
-        <div className={`flex justify-center ${className}`}>
-            <span className="text-xs font-medium text-slate-400 dark:text-text-tertiary py-1 px-3 bg-slate-100 dark:bg-surface-dark rounded-full">
+        <div className={className} style={{ display: 'flex', justifyContent: 'center' }}>
+            <span style={{
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                color: 'var(--color-text-tertiary, #94a3b8)',
+                padding: '0.25rem 0.75rem',
+                backgroundColor: 'var(--color-background-light, #f1f5f9)',
+                borderRadius: '9999px',
+            }}>
                 {formatDate(date)}
             </span>
         </div>

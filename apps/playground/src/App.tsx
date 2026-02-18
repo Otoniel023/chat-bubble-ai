@@ -37,49 +37,35 @@ const chatConfig: ChatBubbleConfig = {
     maxWidth: '900px',
     height: '100vh',
     theme: {
-        colors: {
-            primary: '#ff8800',
-            primaryHover: '#e67a00',
-        },
-        backgrounds: {
-            chat: 'linear-gradient(135deg, #d0eefe 0%, #7bc5e8 100%)', // Example gradient
-        },
-        messageBubbles: {
-            user: {
-                opacity: 0.9,
-                background: '#fb923c',
-                textColor: '#fff', // Example customization
-            },
-            assistant: {
-                opacity: 0.6,
-                background: '#ffffff',
-                textColor: '#000',  // Example customization
-                fontWeight: 'base',
-            }
-        },
-        fonts: {
-            family: "'Inter', sans-serif",
-            sizes: {
-                xs: '0.75rem',
-                sm: '0.875rem',
-                base: '1rem',
-                lg: '1.125rem',
-                xl: '1.25rem',
-            },
+        cssVariables: {
+            // Primary colors
+            colorPrimary: '#ff8800',
+            colorPrimaryHover: '#e67a00',
+
+            // Fonts
+            fontSans: "'Inter', sans-serif",
         },
     },
+    style: {
+        // Message styling
+        '--message-user-bg': '#fb923c',
+        '--message-user-text': '#ffffff',
+        '--message-assistant-bg': '#ffffff',
+        '--message-assistant-text': '#000000',
+
+        // Chat background
+        '--chat-background': 'linear-gradient(135deg, #d0eefe 0%, #7bc5e8 100%)',
+    } as React.CSSProperties,
     header: {
         avatar: {
             type: 'image',
             src: 'https://photos.dominicanatours.com/imagenes/domi.webp',
-            backgroundColor: 'bg-orange-100',
-            textColor: 'text-orange-600',
+            backgroundColor: '#ffedd5', // bg-orange-100
+            textColor: '#ea580c', // text-orange-600
         },
         title: 'DominicanaTours',
         subtitle: 'Nº1 en Viajes al Caribe',
-        actions: [
-
-        ],
+        actions: [],
     },
     input: {
         placeholder: 'Escribe tu consulta aquí...',
@@ -92,7 +78,7 @@ const chatConfig: ChatBubbleConfig = {
         sendButtonDisabledColor: '#cbd5e1',
     },
     launcher: {
-        imageUrl: 'https://photos.dominicanatours.com/imagenes/domi.webp', // Fallback or static
+        imageUrl: 'https://photos.dominicanatours.com/imagenes/domi.webp',
         animationImages: [
             "https://photos.dominicanatours.com/imagenes/domi-1.webp",
             "https://photos.dominicanatours.com/imagenes/domi.webp"
@@ -106,10 +92,11 @@ const chatConfig: ChatBubbleConfig = {
     notification: {
         title: '¡Hola! Soy Domi, tu asistente virtual en DominicanaTours.',
         message: '¡Estoy aquí para cualquier duda que puedas tener!',
-        // icon: 'waving_hand', // Icon removed to match design closer, or keep it if preferred. Design didn't have icon besides text.
         interval: 60000,
         duration: 10000,
-    }
+    },
+    url: "https://ai.grupovdt.com/api/agents/stream/domi",
+    token: "4XPNFnS4Ew4k8dkDhw+6sqMAPBkaT5KjZcUt4NqGsz0="
 };
 
 function App() {

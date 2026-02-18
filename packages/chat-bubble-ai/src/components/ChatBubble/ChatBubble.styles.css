@@ -1,7 +1,8 @@
 /* Embedded Chat Widget Styles */
 
 /* Reset for iframe context */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -68,10 +69,7 @@ html, body {
   transform: scale(1.05);
 }
 
-.chat-toggle-button .material-symbols-outlined {
-  font-size: 28px;
-  transition: transform 0.3s;
-}
+
 
 /* Chat Bubble Container - fills iframe when expanded */
 .chat-bubble-container {
@@ -101,7 +99,7 @@ html, body {
 }
 
 /* Ensure chat content fills the container */
-.chat-bubble-container > div {
+.chat-bubble-container>div {
   height: 100% !important;
   max-height: 100%;
 }
@@ -143,9 +141,7 @@ html, body {
   color: rgba(0, 0, 0, 0.8);
 }
 
-.chat-close-button .material-symbols-outlined {
-  font-size: 20px;
-}
+
 
 /* Notification Badge */
 .chat-notification-badge {
@@ -168,11 +164,13 @@ html, body {
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.8;
     transform: scale(1.05);
@@ -201,9 +199,12 @@ html, body {
 
 /* Notification Bubble Animations */
 @keyframes bounce-subtle {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-4px);
   }
@@ -213,6 +214,7 @@ html, body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -223,6 +225,7 @@ html, body {
     transform: translateY(10px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;

@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-@import "tailwindcss";
 
-@theme {
+:root {
   /* Font Family */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 
@@ -22,22 +21,22 @@
   --animate-bounce: bounce 1.4s infinite;
 }
 
-@layer base {
-  * {
-    @apply box-border;
-  }
+* {
+  box-sizing: border-box;
+}
 
-  html,
-  body {
-    @apply m-0 p-0;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  #root {
-    @apply w-full h-screen;
-  }
+#root {
+  width: 100%;
+  height: 100vh;
 }
 
 /* Custom scrollbar styles */

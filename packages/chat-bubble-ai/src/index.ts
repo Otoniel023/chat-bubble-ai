@@ -1,3 +1,5 @@
+import './styles.css';
+
 /**
  * chat-bubble-ai - Public Entry Point
  *

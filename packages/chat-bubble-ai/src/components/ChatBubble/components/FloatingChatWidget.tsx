@@ -1,7 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChatBubbleComponent } from '../ChatBubble';
 import type { ChatBubbleConfig } from '../ChatBubble.types';
+import { ChatBubbleIcon, CloseIcon } from './icons';
 
 interface FloatingChatWidgetProps {
     config: ChatBubbleConfig;
@@ -16,13 +17,13 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     const [showNotification, setShowNotification] = useState(false);
 
     const toggleOpen = () => {
+        // ... (existing logic)
         setIsOpen(!isOpen);
         if (!isOpen) setShowNotification(false);
     };
 
-    // Unified notification logic
+    // ... (useEffect for notification)
     useEffect(() => {
-        // Don't show notification if chat is open or notification not configured
         if (isOpen || !config.notification) {
             setShowNotification(false);
             return;
@@ -40,10 +41,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
             }, durationTime);
         };
 
-        // Show immediately on mount
         showCycle();
 
-        // Then show periodically
         const intervalId = setInterval(() => {
             showCycle();
         }, intervalTime);
@@ -57,20 +56,19 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     // Override config for widget mode
     const widgetConfig: ChatBubbleConfig = {
         ...config,
-        height: '100%', // Take full height of container
+        height: '100%',
         header: {
             ...config.header,
-            // Ensure title/avatar exist
             title: config.header?.title || 'Chat',
             avatar: config.header?.avatar || {
-                type: 'icon',
-                icon: 'smart_toy',
+                type: 'image',
+                src: 'https://photos.dominicanatours.com/imagenes/domi.webp',
             },
             actions: [
                 ...(config.header?.actions || []),
                 {
                     id: 'close-widget',
-                    icon: 'close',
+                    icon: <CloseIcon />,
                     ariaLabel: 'Close chat',
                     onClick: () => setIsOpen(false),
                 },
@@ -78,7 +76,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
         },
     };
 
-    // Animation logic
+    // Animation logic (unchanged)
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     useEffect(() => {
@@ -86,9 +84,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
             return;
         }
 
-        // Only animate if notification is visible
         if (!showNotification) {
-            setCurrentImageIndex(0); // Reset for next time
+            setCurrentImageIndex(0);
             return;
         }
 
@@ -106,130 +103,188 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
         ? config.launcher.animationImages[currentImageIndex]
         : config.launcher?.imageUrl;
 
+    const baseZIndex = 9999;
+
     return (
-        <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-1">
+        <div
+            style={{
+                position: 'fixed',
+                bottom: '24px',
+                right: '24px',
+                zIndex: baseZIndex,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                fontFamily: config.theme?.cssVariables?.fontSans || 'system-ui, sans-serif',
+                ...config.style,
+            }}
+        >
             {/* Chat Window Container */}
             <div
-                className={`
-                    origin-bottom-right transition-all duration-300 ease-out
-                    flex flex-col
-                    bg-white dark:bg-slate-900
-                    rounded-md shadow-2xl
-                    overflow-hidden
-                    border border-gray-200 dark:border-gray-800
-                    ${isOpen
-                        ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
-                        : 'opacity-0 scale-95 translate-y-4 pointer-events-none'
-                    }
-                `}
                 style={{
+                    transformOrigin: 'bottom right',
+                    transition: 'all 300ms ease-out',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    backgroundColor: config.theme?.cssVariables?.colorSurfaceLight || '#ffffff',
+                    borderRadius: '12px',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                    overflow: 'hidden',
+                    border: `1px solid ${config.theme?.cssVariables?.colorBorderLight || '#e2e8f0'}`,
+                    opacity: isOpen ? 1 : 0,
+                    transform: isOpen ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(16px)',
+                    pointerEvents: isOpen ? 'auto' : 'none',
                     width: isOpen ? 'min(450px, 90vw)' : 'min(400px, 90vw)',
                     height: isOpen ? 'min(650px, 80vh)' : '0px',
+                    marginBottom: isOpen ? '8px' : '0',
                 }}
             >
-                <div className="h-full w-full">
+                <div style={{ height: '100%', width: '100%' }}>
                     <ChatBubbleComponent config={widgetConfig} />
                 </div>
             </div>
-            {/* Red tail triangle */}
-            {(isOpen) && <div
-                className="relative -bottom-6 right-4 z-50 mr-4"
-                style={{
-                    width: 0,
-                    height: 0,
-                    borderLeft: '8px solid transparent',
-                    borderRight: '8px solid transparent',
-                    borderTop: '10px solid #fb2c36'
-                }}
-            >
-            </div>}
+
+            {/* Red tail triangle - Only show when open */}
+            {isOpen && (
+                <div
+                    style={{
+                        position: 'relative',
+                        right: '16px',
+                        zIndex: 50,
+                        marginRight: '4px',
+                        marginBottom: '4px',
+                        width: 0,
+                        height: 0,
+                        borderLeft: '8px solid transparent',
+                        borderRight: '8px solid transparent',
+                        borderTop: '10px solid #fb2c36',
+                    }}
+                />
+            )}
+
             {/* Toggle Button */}
             <button
                 onClick={toggleOpen}
-                className={`
-                    group relative flex items-center justify-center
-                    w-14 h-14 
-                    rounded-full 
-                    bg-indigo-600 hover:bg-indigo-700 
-                    text-white 
-                    shadow-lg hover:shadow-xl hover:scale-105 active:scale-95
-                    transition-all duration-300
-                    outline-none focus:ring-4 focus:ring-indigo-500/30
-                    pointer-events-auto
-                    overflow-hidden
-                `}
-                style={{
-                    backgroundColor: config.launcher?.color
-                }}
                 aria-label={isOpen ? 'Close chat' : 'Open chat'}
+                style={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '9999px',
+                    backgroundColor: config.launcher?.color || '#4f46e5',
+                    color: '#ffffff',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 300ms',
+                    outline: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    zIndex: baseZIndex + 1,
+                }}
             >
                 <div
-                    className={`
-                         absolute inset-0 flex items-center justify-center
-                        transition-all duration-300
-                        ${isOpen ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}
-                    `}
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 300ms',
+                        transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                        opacity: isOpen ? 0 : 1,
+                    }}
                 >
                     {launcherImage ? (
                         <img
                             src={launcherImage}
                             alt="Chat"
-                            className="w-full h-full object-cover"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                     ) : (
-                        <span className="material-symbols-outlined text-2xl">
-                            {config.launcher?.icon || 'chat_bubble'}
-                        </span>
+                        typeof config.launcher?.icon === 'string' ? (
+                            <span style={{ fontSize: '24px' }}>
+                                {config.launcher?.icon || 'chat_bubble'}
+                            </span>
+                        ) : (
+                            config.launcher?.icon || <ChatBubbleIcon size={24} />
+                        )
                     )}
                 </div>
 
-                <span
-                    className={`
-                        material-symbols-outlined text-2xl absolute
-                        transition-all duration-300
-                        ${isOpen ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'}
-                    `}
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '24px',
+                        position: 'absolute',
+                        transition: 'all 300ms',
+                        transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                        opacity: isOpen ? 1 : 0,
+                    }}
                 >
-                    close
-                </span>
+                    <CloseIcon size={24} />
+                </div>
             </button>
+
 
             {/* Notification Bubble */}
             {config.notification && showNotification && !isOpen && (
                 <div
-                    className="overflow-visible pointer-events-none gap-1 rounded-md flex-col absolute -top-[190px] md:top[-100px] right-0 font-semibold z-10 flex justify-end items-end"
                     style={{
-                        transform: 'translateX(-20px) translateY(-210px)',
+                        position: 'absolute',
+                        right: 0,
+                        zIndex: baseZIndex + 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-end',
+                        alignItems: 'flex-end',
+                        pointerEvents: 'none',
+                        overflow: 'visible',
+                        transform: 'translateX(-5px) translateY(-60px)', // adjusted from original
                         width: config.notification.width || '230px',
-                        minHeight: config.notification.height || '220px',
+                        minHeight: config.notification.height || 'auto',
                         ...config.notification.style
                     }}
                 >
-                    {config.notification.message &&
-
-
+                    {config.notification.message && (
                         <div
-                            className=" text-wrap relative rounded-md bg-white p-2 border border-gray-200 shadow-md h-max w-full text-center text-base overflow-visible"
-
+                            style={{
+                                position: 'relative',
+                                backgroundColor: '#ffffff',
+                                padding: '8px',
+                                borderRadius: '6px',
+                                border: '1px solid #e5e7eb', // gray-200
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                width: '100%',
+                                textAlign: 'center',
+                                fontSize: '1rem',
+                                color: '#1f2937', // gray-800
+                                overflow: 'visible',
+                                zIndex: 9999,
+                            }}
                         >
                             {config.notification.message}
-                            <div className=" bg-white top-1 right-4 absolute"
+                            <div
                                 style={{
-                                    clipPath: "polygon(2% 0, 75% 0, 100% 100%)",
-                                    transform: "translateY(-10%)",
-                                    height: "30px",
-                                    width: "30px"
-                                }}>
-
-                            </div>
+                                    position: 'absolute',
+                                    top: '100%', // Bottom of bubble
+                                    right: '16px',
+                                    width: '0',
+                                    height: '0',
+                                    borderLeft: '10px solid transparent',
+                                    borderRight: '10px solid transparent',
+                                    borderTop: '10px solid #ffffff', // Match bg
+                                    filter: 'drop-shadow(0 2px 1px rgba(0,0,0,0.05))' // tricky with border triangle
+                                }}
+                            />
                         </div>
-
-                    }
-
-
+                    )}
                 </div>
             )}
-
         </div>
     );
 };
