@@ -261,6 +261,28 @@ export type DeepPartial<T> = {
  * Main chat bubble configuration
  */
 /**
+ * Notification dot (ping) customization
+ */
+export interface NotificationDotConfig {
+    /** Show or hide the dot entirely. Default: true */
+    show?: boolean;
+    /** Dot color. Default: '#ef4444' */
+    color?: string;
+    /** Dot diameter in px. Default: 10 */
+    size?: number;
+    /** Ripple ring color. Defaults to same as `color` */
+    ringColor?: string;
+    /** Animation duration in seconds. Default: 1.2 */
+    animationDuration?: number;
+    /** Max scale the ring reaches. Default: 2.2 */
+    animationScale?: number;
+    /** Position offset from top-right corner of the launcher button */
+    position?: { top?: string; right?: string };
+    /** Position of the dot inside the notification bubble card. Default: left-center */
+    bubblePosition?: { side?: 'left' | 'right'; offset?: string };
+}
+
+/**
  * Notification configuration for floating widget
  */
 export interface NotificationConfig {
@@ -274,6 +296,8 @@ export interface NotificationConfig {
     onClick?: () => void;
     width?: string | number;
     height?: string | number;
+    /** Customize the ping dot that appears on the launcher button */
+    dot?: NotificationDotConfig;
 }
 
 /**
@@ -291,6 +315,8 @@ export interface ChatBubbleConfig {
     };
     launcher?: LauncherConfig;
     notification?: NotificationConfig;
+    /** Initial greeting message shown by the assistant when the chat opens for the first time */
+    initialMessage?: string;
     maxWidth?: string;
     height?: string;
     className?: string;
@@ -441,4 +467,6 @@ export interface ChatContextValue {
     sendMessage: (content: string) => Promise<void>;
     clearMessages: () => void;
     clearError: () => void;
+    /** Inject a message directly into the chat history (e.g. initial greeting) */
+    injectMessage: (content: string, role?: 'assistant' | 'user') => void;
 }

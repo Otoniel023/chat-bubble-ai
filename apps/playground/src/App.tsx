@@ -97,11 +97,24 @@ const chatConfig: ChatBubbleConfig = {
     notification: {
         title: '¡Hola! Soy Domi, tu asistente virtual en DominicanaTours.',
         message: '¡Estoy aquí para cualquier duda que puedas tener!',
-        interval: 60000,
+        interval: 3000,
         duration: 10000,
+        dot: {
+            show: true,              // ocultar con false
+            color: '#ff8800',        // color del dot sólido
+            ringColor: '#f99',    // color del anillo ripple (default = color)
+            size: 10,                // diámetro en px
+            animationDuration: 1.2,  // segundos por ciclo
+            animationScale: 2.2,     // cuánto crece el anillo
+            position: {
+                top: '4%',          // offset desde arriba del botón
+                right: '92%',        // offset desde la derecha
+            }
+        }
     },
     url: "https://ai.grupovdt.com/api/agents/stream/domi",
-    token: "4XPNFnS4Ew4k8dkDhw+6sqMAPBkaT5KjZcUt4NqGsz0="
+    token: "4XPNFnS4Ew4k8dkDhw+6sqMAPBkaT5KjZcUt4NqGsz0=",
+    initialMessage: "¡Hola, bienvenido! <br><br> Soy el agente virtual de DominicanaTours.<br><br>Estoy encantado de ayudarte con información sobre tus reservas y cualquier inquietud que tengas.",
 };
 
 function App() {
@@ -156,7 +169,11 @@ function App() {
             </div>
 
             {/* Chat Bubble Implementation */}
-            <ChatBubbleProvider agentId="playground-test" apiErrorMessage={chatConfig.feedback?.apiError}>
+            <ChatBubbleProvider
+                agentId="playground-test"
+                apiErrorMessage={chatConfig.feedback?.apiError}
+                initialMessage={chatConfig.initialMessage}
+            >
                 <FloatingChatWidget config={chatConfig} defaultOpen={false} />
                 <DebugPanel />
             </ChatBubbleProvider>

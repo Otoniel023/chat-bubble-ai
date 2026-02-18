@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { ChatBubbleComponent } from '../ChatBubble';
+import { ChatBubbleContext } from '../ChatBubbleContext';
 import type { ChatBubbleConfig } from '../ChatBubble.types';
 import { ChatIcon, CloseIcon } from './icons';
 
@@ -22,6 +23,23 @@ export function EmbeddedChatWidget({
     notificationCount = 0,
 }: EmbeddedChatWidgetProps) {
     const [isOpen, setIsOpen] = useState(false);
+
+    // Inject initialMessage from config into the external ChatBubbleProvider
+    const chatCtx = useContext(ChatBubbleContext);
+    const initialMsgInjected = useRef(false);
+    useEffect(() => {
+        if (
+            config?.initialMessage &&
+            chatCtx &&
+            chatCtx.messages.length === 0 &&
+            chatCtx.injectMessage &&
+            !initialMsgInjected.current
+        ) {
+            initialMsgInjected.current = true;
+            chatCtx.injectMessage(config.initialMessage, 'assistant');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [config?.initialMessage]);
 
     // Notify parent when chat opens/closes
     useEffect(() => {

@@ -4,7 +4,7 @@
  * Provides sendMessage, clearMessages, and clearError functions.
  */
 
-import React, { createContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useState, useCallback, useRef, useEffect } from 'react';
 import type {
     ChatMessage,
     ChatContextValue,
@@ -18,6 +18,8 @@ interface ChatBubbleProviderProps {
     children: React.ReactNode;
     agentId?: string;
     apiErrorMessage?: string;
+    /** Initial greeting message shown by the assistant when the chat first loads */
+    initialMessage?: string;
 }
 
 export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
@@ -26,12 +28,31 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     // agentId,
     apiErrorMessage,
+    initialMessage,
 }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isTyping, setIsTyping] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const abortControllerRef = useRef<{ abort: () => void } | null>(null);
+    const initialMessageInjected = useRef(false);
+
+    // Inject initial assistant message once on mount
+    useEffect(() => {
+        if (initialMessage && !initialMessageInjected.current) {
+            initialMessageInjected.current = true;
+            setMessages([
+                {
+                    id: 'initial-msg',
+                    content: initialMessage,
+                    role: 'assistant',
+                    timestamp: new Date().toISOString(),
+                    status: 'sent',
+                },
+            ]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /**
      * Send a message stream to the agent service
@@ -214,6 +235,19 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
         setError(null);
     }, []);
 
+    const injectMessage = useCallback((content: string, role: 'assistant' | 'user' = 'assistant') => {
+        setMessages((prev) => [
+            ...prev,
+            {
+                id: `injected-${Date.now()}`,
+                content,
+                role,
+                timestamp: new Date().toISOString(),
+                status: 'sent' as const,
+            },
+        ]);
+    }, []);
+
     const value: ChatContextValue = {
         messages,
         isTyping,
@@ -222,6 +256,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
         sendMessage,
         clearMessages,
         clearError,
+        injectMessage,
     };
 
     return (

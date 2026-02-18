@@ -1,6 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { ChatBubbleComponent } from '../ChatBubble';
+import { ChatBubbleContext } from '../ChatBubbleContext';
 import type { ChatBubbleConfig } from '../ChatBubble.types';
 import { ChatBubbleIcon, CloseIcon } from './icons';
 
@@ -18,6 +19,26 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     const [isMobile, setIsMobile] = useState(false);
     const [pillVisible, setPillVisible] = useState(true);
 
+    // Inject initialMessage from config into the external ChatBubbleProvider
+    const chatCtx = useContext(ChatBubbleContext);
+    const initialMsgInjected = useRef(false);
+    useEffect(() => {
+        if (
+            config.initialMessage &&
+            chatCtx &&
+            chatCtx.messages.length === 0 &&
+            chatCtx.injectMessage &&
+            !initialMsgInjected.current
+        ) {
+            initialMsgInjected.current = true;
+            chatCtx.injectMessage(config.initialMessage, 'assistant');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [config.initialMessage]);
+
+    // Inject ping keyframe once
+    // Keyframe injection is deferred to after dot config is computed (see below)
+
     // Detect mobile breakpoint
     const breakpoint = config.launcher?.mobilePill?.breakpoint ?? 768;
     useEffect(() => {
@@ -33,7 +54,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
         if (!isOpen) setShowNotification(false);
     };
 
-    // Notification cycle
+    // Notification cycle — recursive setTimeout to avoid overlap
     useEffect(() => {
         if (isOpen || !config.notification) {
             setShowNotification(false);
@@ -41,18 +62,28 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
         }
         const intervalTime = config.notification.interval || 30000;
         const durationTime = config.notification.duration || 5000;
+
+        let showTimer: ReturnType<typeof setTimeout>;
         let hideTimer: ReturnType<typeof setTimeout>;
-        const showCycle = () => {
+
+        const runCycle = () => {
             setShowNotification(true);
-            hideTimer = setTimeout(() => setShowNotification(false), durationTime);
+            hideTimer = setTimeout(() => {
+                setShowNotification(false);
+                // Schedule next appearance after interval
+                showTimer = setTimeout(runCycle, intervalTime);
+            }, durationTime);
         };
-        showCycle();
-        const intervalId = setInterval(showCycle, intervalTime);
+
+        // First appearance immediately
+        runCycle();
+
         return () => {
-            clearInterval(intervalId);
+            clearTimeout(showTimer);
             clearTimeout(hideTimer);
         };
     }, [isOpen, config.notification]);
+
 
     // Override config for widget mode
     const widgetConfig: ChatBubbleConfig = {
@@ -97,7 +128,46 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
 
     const baseZIndex = 9999;
 
-    // ─── MOBILE PILL MODE ───────────────────────────────────────────────────────
+    // ─── DOT CONFIG ─────────────────────────────────────────────────────────────
+    const dotCfg = config.notification?.dot;
+    const dotShow = dotCfg?.show !== false; // default true
+    const dotColor = dotCfg?.color || '#ef4444';
+    const dotSize = dotCfg?.size ?? 10;
+    const dotRingColor = dotCfg?.ringColor || dotColor;
+    const dotAnimDuration = dotCfg?.animationDuration ?? 1.2;
+    const dotAnimScale = dotCfg?.animationScale ?? 2.2;
+    const dotTop = dotCfg?.position?.top ?? '4px';
+    const dotRight = dotCfg?.position?.right ?? '4px';
+    // Wrapper is dotSize + 4px padding on each side
+    const dotWrapperSize = dotSize + 4;
+    // Bubble dot position
+    const dotBubbleSide = dotCfg?.bubblePosition?.side ?? 'left';
+    const dotBubbleOffset = dotCfg?.bubblePosition?.offset ?? '10px';
+    // Card padding: leave room for the dot on whichever side it's on
+    const dotBubblePad = dotShow ? `${dotWrapperSize + 8}px` : '10px';
+    const bubbleCardPadding = dotBubbleSide === 'left'
+        ? `10px 12px 10px ${dotBubblePad}`
+        : `10px ${dotBubblePad} 10px 12px`;
+
+    // Inject ping keyframe with current scale (unique per scale value)
+    const pingKeyframeName = `chat-bubble-ping-${Math.round(dotAnimScale * 10)}`;
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        const styleId = `chat-bubble-ping-style-${Math.round(dotAnimScale * 10)}`;
+        if (document.getElementById(styleId)) return;
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+            @keyframes ${pingKeyframeName} {
+                0%   { transform: scale(1);              opacity: 0.65; }
+                70%  { transform: scale(${dotAnimScale}); opacity: 0;   }
+                100% { transform: scale(${dotAnimScale}); opacity: 0;   }
+            }
+        `;
+        document.head.appendChild(style);
+    }, [dotAnimScale, pingKeyframeName]);
+
     const hasMobilePill = !!config.launcher?.mobilePill;
 
     if (hasMobilePill && isMobile) {
@@ -145,10 +215,13 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                         right: 0,
                         zIndex: baseZIndex,
                         display: 'flex',
-                        alignItems: 'center',
+                        flexDirection: 'column',
+                        alignItems: 'flex-end',
                         transition: 'transform 300ms ease',
                         transform: pillVisible ? 'translateX(0)' : 'translateX(calc(100% - 52px))',
                         fontFamily: config.theme?.cssVariables?.fontSans || 'system-ui, sans-serif',
+                        maxWidth: '100vw',
+                        overflow: 'visible',
                     }}
                 >
                     {/* Pill container */}
@@ -260,38 +333,59 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                                 <CloseIcon size={24} />
                             </div>
 
-                            {/* Notification dot */}
-                            {showNotification && !isOpen && (
-                                <div style={{
-                                    position: 'absolute', top: '4px', right: '4px',
-                                    width: '10px', height: '10px',
-                                    borderRadius: '50%',
-                                    background: '#ef4444',
-                                    border: '2px solid white',
-                                    animation: 'ping 1s cubic-bezier(0,0,0.2,1) infinite',
-                                }} />
-                            )}
+                            {/* Notification dot — CSS ping */}
+
                         </button>
                     </div>
 
                     {/* Notification bubble */}
                     {config.notification && showNotification && !isOpen && pillVisible && (
                         <div style={{
-                            position: 'absolute',
-                            bottom: '72px',
-                            right: '6px',
+                            position: 'relative',
                             background: '#ffffff',
                             borderRadius: '10px',
-                            padding: '10px 14px',
+                            padding: bubbleCardPadding,
                             boxShadow: '0 4px 16px rgba(0,0,0,0.14)',
                             border: '1px solid #e5e7eb',
-                            maxWidth: '280px',
+                            maxWidth: 'min(280px, calc(100vw - 16px))',
+                            width: 'max-content',
                             fontSize: '0.875rem',
                             color: '#1f2937',
                             pointerEvents: 'none',
                             zIndex: baseZIndex + 2,
-                            width: 'max-content',
+                            alignSelf: 'flex-end',
+                            marginBottom: '8px',
+                            marginRight: '6px',
+                            boxSizing: 'border-box',
                         }}>
+                            {/* Ping dot inside mobile bubble */}
+                            {showNotification && !isOpen && dotShow && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: dotTop,
+                                    right: dotRight,
+                                    width: `${dotWrapperSize}px`,
+                                    height: `${dotWrapperSize}px`,
+                                }}>
+                                    {/* Ripple ring */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        borderRadius: '50%',
+                                        background: dotRingColor,
+                                        animation: `${pingKeyframeName} ${dotAnimDuration}s ease-out infinite`,
+                                    }} />
+                                    {/* Solid dot */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '2px', left: '2px',
+                                        width: `${dotSize}px`, height: `${dotSize}px`,
+                                        borderRadius: '50%',
+                                        background: dotColor,
+                                        border: '2px solid white',
+                                    }} />
+                                </div>
+                            )}
                             {config.notification.message}
                             {/* Triangle pointer */}
                             <div style={{
@@ -427,6 +521,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                 </div>
             </button>
 
+
+
             {/* Notification Bubble */}
             {config.notification && showNotification && !isOpen && (
                 <div
@@ -450,17 +546,45 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                         <div style={{
                             position: 'relative',
                             backgroundColor: '#ffffff',
-                            padding: '8px',
+                            padding: bubbleCardPadding,
                             borderRadius: '6px',
                             border: '1px solid #e5e7eb',
                             boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
                             width: '100%',
-                            textAlign: 'center',
-                            fontSize: '1rem',
+                            textAlign: 'left',
+                            fontSize: '0.95rem',
                             color: '#1f2937',
                             overflow: 'visible',
                             zIndex: 9999,
                         }}>
+                            {/* Ping dot inside the bubble */}
+                            {showNotification && !isOpen && dotShow && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: dotTop,
+                                    right: dotRight,
+                                    width: `${dotWrapperSize}px`,
+                                    height: `${dotWrapperSize}px`,
+                                }}>
+                                    {/* Ripple ring */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        borderRadius: '50%',
+                                        background: dotRingColor,
+                                        animation: `${pingKeyframeName} ${dotAnimDuration}s ease-out infinite`,
+                                    }} />
+                                    {/* Solid dot */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '2px', left: '2px',
+                                        width: `${dotSize}px`, height: `${dotSize}px`,
+                                        borderRadius: '50%',
+                                        background: dotColor,
+                                        border: '2px solid white',
+                                    }} />
+                                </div>
+                            )}
                             {config.notification.message}
                             <div style={{
                                 position: 'absolute',
