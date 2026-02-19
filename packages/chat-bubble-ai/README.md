@@ -139,12 +139,13 @@ export default function App() {
 
 ### `NotificationConfig`
 
-| Property   | Type                    | Default | Description                                      |
-| ---------- | ----------------------- | ------- | ------------------------------------------------ |
-| `message`  | `string`                | —       | **Required.** Text to show in the notification bubble. |
-| `interval` | `number`                | `30000` | Time in ms between notification appearances.     |
-| `duration` | `number`                | `5000`  | Time in ms the notification stays visible.       |
-| `dot`      | `NotificationDotConfig` | —       | Customization for the red notification dot.      |
+| Property          | Type                    | Default | Description                                      |
+| ----------------- | ----------------------- | ------- | ------------------------------------------------ |
+| `message`         | `string`                | —       | **Required.** Text to show in the notification bubble. |
+| `interval`        | `number`                | `30000` | Time in ms between notification appearances.     |
+| `duration`        | `number`                | `5000`  | Time in ms the notification stays visible.       |
+| `showImmediately` | `boolean`               | `true`  | Show the notification right away on mount. Set to `false` to wait for the first `interval` before appearing. |
+| `dot`             | `NotificationDotConfig` | —       | Customization for the red notification dot.      |
 
 #### `NotificationDotConfig`
 
@@ -216,6 +217,29 @@ const config: ChatBubbleConfig = {
 | `colorBorderDark`         | Border color (dark mode)           |
 | `colorTextSecondary`      | Secondary text color               |
 | `fontSans`                | Font family override               |
+
+---
+
+## ⚡ Performance Tip
+
+To avoid unexpected re-renders or state resets (e.g., chat history clearing on update), ensure the `config` object reference remains stable.
+
+**Option 1: Define outside the component** (Best for static configs)
+```tsx
+const chatConfig = { /* ... */ };
+
+function App() {
+  return <FloatingChatWidget config={chatConfig} />;
+}
+```
+
+**Option 2: Use `useMemo`** (Best for dynamic configs)
+```tsx
+function App() {
+  const chatConfig = useMemo(() => ({ /* ... */ }), [dep]);
+  return <FloatingChatWidget config={chatConfig} />;
+}
+```
 
 ---
 

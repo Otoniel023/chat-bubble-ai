@@ -97,7 +97,7 @@ const chatConfig: ChatBubbleConfig = {
     notification: {
         title: '¡Hola! Soy Domi, tu asistente virtual en DominicanaTours.',
         message: '¡Estoy aquí para cualquier duda que puedas tener!',
-        interval: 3000,
+        interval: 10000,
         duration: 10000,
         dot: {
             show: true,              // ocultar con false

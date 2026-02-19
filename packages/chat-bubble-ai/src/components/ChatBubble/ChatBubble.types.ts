@@ -291,6 +291,12 @@ export interface NotificationConfig {
     icon?: string | React.ReactNode;
     interval?: number; // Time between appearances in ms (default: 60000)
     duration?: number; // Time visible in ms (default: 5000)
+    /**
+     * Whether to show the notification immediately on mount.
+     * - `true` (default): notification appears right away.
+     * - `false`: waits for the first `interval` before appearing.
+     */
+    showImmediately?: boolean;
     className?: string;
     style?: React.CSSProperties;
     onClick?: () => void;

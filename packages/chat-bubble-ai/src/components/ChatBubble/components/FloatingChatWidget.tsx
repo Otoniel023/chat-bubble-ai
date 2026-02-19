@@ -62,6 +62,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
         }
         const intervalTime = config.notification.interval || 30000;
         const durationTime = config.notification.duration || 5000;
+        const showImmediately = config.notification.showImmediately !== false; // default true
 
         let showTimer: ReturnType<typeof setTimeout>;
         let hideTimer: ReturnType<typeof setTimeout>;
@@ -75,8 +76,13 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
             }, durationTime);
         };
 
-        // First appearance immediately
-        runCycle();
+        if (showImmediately) {
+            // First appearance immediately
+            runCycle();
+        } else {
+            // First appearance after the interval
+            showTimer = setTimeout(runCycle, intervalTime);
+        }
 
         return () => {
             clearTimeout(showTimer);
@@ -196,7 +202,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                             fontFamily: config.theme?.cssVariables?.fontSans || 'system-ui, sans-serif',
                             ...config.style,
                         }}
-                        >
+                    >
                         <style>{`
                             @keyframes slideUp {
                                 from { transform: translateY(100%); opacity: 0; }
@@ -223,7 +229,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                         maxWidth: '100dvw',
                         overflow: 'visible',
                     }}
-                    >
+                >
                     {/* Pill container */}
                     {/* Notification bubble */}
                     {config.notification && showNotification && !isOpen && pillVisible && (

@@ -1,6 +1,6 @@
 {
   "name": "chat-bubble-ai",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "description": "A customizable AI chat bubble component for React",
   "keywords": [
