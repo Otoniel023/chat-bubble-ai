@@ -246,7 +246,7 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
 
                             {/* Messages for this date */}
                             {dateMessages.map((message) => (
-                                <ChatMessage key={message.id} message={message} />
+                                <ChatMessage key={message.id} message={message} defaultAvatar={header?.avatar} />
                             ))}
                         </React.Fragment>
                     ))}

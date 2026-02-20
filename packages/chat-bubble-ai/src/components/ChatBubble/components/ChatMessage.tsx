@@ -29,10 +29,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     };
 
     // Default avatars if not provided
-    const messageAvatar: AvatarConfig = defaultAvatar || {
+   
+    const messageAvatar: AvatarConfig =  {
+        ...defaultAvatar,
         type: isUser ? 'text' : 'image',
         text: isUser ? 'U' : undefined,
-        src: isUser ? undefined : 'https://photos.dominicanatours.com/imagenes/domi.webp',
+        src: isUser ? undefined : (defaultAvatar?.src || 'https://photos.dominicanatours.com/imagenes/domi.webp'),
         // Note: Avatar component needs to be checked if it supports style overrides via config,
         // or if we rely on its internal handling. The config interface supports backgroundColor string.
         // We'll leave these strings as they might be used by Avatar logic if it supports arbitrary class/style injection,
