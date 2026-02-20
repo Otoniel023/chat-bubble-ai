@@ -19,6 +19,10 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     const [isMobile, setIsMobile] = useState(false);
     const [pillVisible, setPillVisible] = useState(true);
 
+    // Ref para leer isOpen dentro de timers sin reiniciar el ciclo de notificaciones
+    const isOpenRef = useRef(isOpen);
+    useEffect(() => { isOpenRef.current = isOpen; }, [isOpen]);
+
     // Inject initialMessage from config into the external ChatBubbleProvider
     const chatCtx = useContext(ChatBubbleContext);
     const initialMsgInjected = useRef(false);
@@ -54,12 +58,16 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
         if (!isOpen) setShowNotification(false);
     };
 
-    // Notification cycle — recursive setTimeout to avoid overlap
+    // Ocultar notificación al abrir el chat (efecto ligero, no reinicia el ciclo)
     useEffect(() => {
-        if (isOpen || !config.notification) {
-            setShowNotification(false);
-            return;
-        }
+        if (isOpen) setShowNotification(false);
+    }, [isOpen]);
+
+    // Ciclo de notificaciones — corre de forma independiente sin depender de isOpen.
+    // Usa isOpenRef para saber si el chat está abierto sin reiniciar los timers.
+    useEffect(() => {
+        if (!config.notification) return;
+
         const intervalTime = config.notification.interval || 30000;
         const durationTime = config.notification.duration || 5000;
         const showImmediately = config.notification.showImmediately !== false; // default true
@@ -68,19 +76,18 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
         let hideTimer: ReturnType<typeof setTimeout>;
 
         const runCycle = () => {
-            setShowNotification(true);
+            // Solo mostrar si el chat está cerrado en este momento
+            if (!isOpenRef.current) setShowNotification(true);
             hideTimer = setTimeout(() => {
                 setShowNotification(false);
-                // Schedule next appearance after interval
+                // Programar la siguiente aparición sin importar si el chat estaba abierto
                 showTimer = setTimeout(runCycle, intervalTime);
             }, durationTime);
         };
 
         if (showImmediately) {
-            // First appearance immediately
             runCycle();
         } else {
-            // First appearance after the interval
             showTimer = setTimeout(runCycle, intervalTime);
         }
 
@@ -88,7 +95,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
             clearTimeout(showTimer);
             clearTimeout(hideTimer);
         };
-    }, [isOpen, config.notification]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [config.notification]); // isOpen eliminado: el ciclo ya no se reinicia al cerrar el chat
 
 
     // Override config for widget mode
@@ -550,61 +558,71 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                 >
                     {config.notification.message && (
                         <div style={{
-                            position: 'relative',
-                            backgroundColor: '#ffffff',
-                            padding: bubbleCardPadding,
-                            borderRadius: '6px',
-                            border: '1px solid #e5e7eb',
-                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-                            width: '100%',
-                            textAlign: 'left',
-                            fontSize: '0.95rem',
-                            color: '#1f2937',
-                            overflow: 'visible',
-                            zIndex: 9999,
+                            height: '60px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'flex-end',
+                            alignItems: 'flex-end',
                         }}>
-                            {/* Ping dot inside the bubble */}
-                            {showNotification && !isOpen && dotShow && (
+                            <div style={{
+                                position: 'relative',
+                                backgroundColor: '#ffffff',
+                                padding: bubbleCardPadding,
+                                borderRadius: '6px',
+                                border: '1px solid #e5e7eb',
+                                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                                width: '100%',
+                                textAlign: 'left',
+                                fontSize: '0.95rem',
+                                color: '#1f2937',
+                                overflow: 'visible',
+                                zIndex: 9999,
+                            }}>
+                                {/* Ping dot inside the bubble */}
+                                {showNotification && !isOpen && dotShow && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: dotTop,
+                                        right: dotRight,
+                                        width: `${dotWrapperSize}px`,
+                                        height: `${dotWrapperSize}px`,
+                                    }}>
+                                        {/* Ripple ring */}
+                                        <div style={{
+                                            position: 'absolute',
+                                            inset: 0,
+                                            borderRadius: '50%',
+                                            background: dotRingColor,
+                                            animation: `${pingKeyframeName} ${dotAnimDuration}s ease-out infinite`,
+                                        }} />
+                                        {/* Solid dot */}
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '2px', left: '2px',
+                                            width: `${dotSize}px`, height: `${dotSize}px`,
+                                            borderRadius: '50%',
+                                            background: dotColor,
+                                            border: '2px solid white',
+                                        }} />
+                                    </div>
+                                )}
+                                {config.notification.message}
                                 <div style={{
                                     position: 'absolute',
-                                    top: dotTop,
-                                    right: dotRight,
-                                    width: `${dotWrapperSize}px`,
-                                    height: `${dotWrapperSize}px`,
-                                }}>
-                                    {/* Ripple ring */}
-                                    <div style={{
-                                        position: 'absolute',
-                                        inset: 0,
-                                        borderRadius: '50%',
-                                        background: dotRingColor,
-                                        animation: `${pingKeyframeName} ${dotAnimDuration}s ease-out infinite`,
-                                    }} />
-                                    {/* Solid dot */}
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '2px', left: '2px',
-                                        width: `${dotSize}px`, height: `${dotSize}px`,
-                                        borderRadius: '50%',
-                                        background: dotColor,
-                                        border: '2px solid white',
-                                    }} />
-                                </div>
-                            )}
-                            {config.notification.message}
-                            <div style={{
-                                position: 'absolute',
-                                top: '100%',
-                                right: '16px',
-                                width: 0, height: 0,
-                                borderLeft: '10px solid transparent',
-                                borderRight: '10px solid transparent',
-                                borderTop: '10px solid #ffffff',
-                                filter: 'drop-shadow(0 2px 1px rgba(0,0,0,0.05))',
-                            }} />
+                                    top: '100%',
+                                    right: '16px',
+                                    width: 0, height: 0,
+                                    borderLeft: '10px solid transparent',
+                                    borderRight: '10px solid transparent',
+                                    borderTop: '10px solid #ffffff',
+                                    filter: 'drop-shadow(0 2px 1px rgba(0,0,0,0.05))',
+                                }} />
+                            </div>
                         </div>
+
                     )}
                 </div>
+
             )}
         </div>
     );
