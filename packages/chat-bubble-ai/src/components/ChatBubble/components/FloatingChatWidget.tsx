@@ -18,6 +18,13 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     const [showNotification, setShowNotification] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [pillVisible, setPillVisible] = useState(true);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    // Override message: when the AI responds while the chat is closed, show that
+    // message as a temporary notification before resuming the normal cycle.
+    const [overrideNotificationMessage, setOverrideNotificationMessage] = useState<string | null>(null);
+    const overrideRef = useRef<string | null>(null);
+    useEffect(() => { overrideRef.current = overrideNotificationMessage; }, [overrideNotificationMessage]);
 
     // Ref para leer isOpen dentro de timers sin reiniciar el ciclo de notificaciones
     const isOpenRef = useRef(isOpen);
@@ -26,6 +33,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     // Inject initialMessage from config into the external ChatBubbleProvider
     const chatCtx = useContext(ChatBubbleContext);
     const initialMsgInjected = useRef(false);
+    const isTyping = chatCtx?.isTyping || false;
     useEffect(() => {
         if (
             config.initialMessage &&
@@ -39,6 +47,58 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [config.initialMessage]);
+
+    // When the AI finishes responding while the chat is closed, show its message
+    // as a temporary override notification.
+    const lastShownAssistantMsgId = useRef<string | null>(null);
+    useEffect(() => {
+        if (!config.notification) return;
+        if (!chatCtx?.messages) return;
+
+        // Find the most recent completed assistant message
+        const msgs = chatCtx.messages;
+        const lastAssistant = [...msgs].reverse().find(
+            (m) => m.role === 'assistant' && m.status === 'sent'
+        );
+
+        if (!lastAssistant) return;
+        // Skip the initial injected message  
+        if (lastAssistant.id === 'initial-msg') return;
+        // Skip already-shown messages
+        if (lastAssistant.id === lastShownAssistantMsgId.current) return;
+
+        // Only trigger the override when the chat panel is closed
+        if (isOpenRef.current) {
+            // If the chat is open just mark it as seen so we don't show it later
+            lastShownAssistantMsgId.current = lastAssistant.id;
+            return;
+        }
+
+        lastShownAssistantMsgId.current = lastAssistant.id;
+
+        // Truncate long responses for the notification bubble
+        const maxLen = 120;
+        const rawText = lastAssistant.content;
+        const notifText = rawText.length > maxLen
+            ? rawText.slice(0, maxLen).trimEnd() + '…'
+            : rawText;
+
+        // Show the AI response as the notification message
+        setOverrideNotificationMessage(notifText);
+        setShowNotification(true);
+
+        // Increment unread count
+        setUnreadCount(prev => prev + 1);
+
+        const durationTime = config.notification.duration || 5000;
+        const hideTimer = setTimeout(() => {
+            setShowNotification(false);
+            setOverrideNotificationMessage(null);
+        }, durationTime);
+
+        return () => clearTimeout(hideTimer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chatCtx?.messages]);
 
     // Inject ping keyframe once
     // Keyframe injection is deferred to after dot config is computed (see below)
@@ -55,13 +115,26 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
 
     const toggleOpen = () => {
         setIsOpen(!isOpen);
-        if (!isOpen) setShowNotification(false);
+        if (!isOpen) {
+            setShowNotification(false);
+            setUnreadCount(0); // Reset unread count when opening chat
+        }
     };
 
     // Ocultar notificación al abrir el chat (efecto ligero, no reinicia el ciclo)
     useEffect(() => {
-        if (isOpen) setShowNotification(false);
+        if (isOpen) {
+            setShowNotification(false);
+            setUnreadCount(0); // Reset unread count when chat opens
+        }
     }, [isOpen]);
+
+    // Ocultar notificación cuando el asistente comienza a escribir
+    useEffect(() => {
+        if (isTyping) {
+            setShowNotification(false);
+        }
+    }, [isTyping]);
 
     // Ciclo de notificaciones — corre de forma independiente sin depender de isOpen.
     // Usa isOpenRef para saber si el chat está abierto sin reiniciar los timers.
@@ -76,10 +149,11 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
         let hideTimer: ReturnType<typeof setTimeout>;
 
         const runCycle = () => {
-            // Solo mostrar si el chat está cerrado en este momento
-            if (!isOpenRef.current) setShowNotification(true);
+            // Solo mostrar si el chat está cerrado, no hay un override activo, y no está escribiendo
+            if (!isOpenRef.current && !overrideRef.current && !isTyping) setShowNotification(true);
             hideTimer = setTimeout(() => {
-                setShowNotification(false);
+                // Only clear the notification if it hasn't already been replaced by an override
+                if (!overrideRef.current) setShowNotification(false);
                 // Programar la siguiente aparición sin importar si el chat estaba abierto
                 showTimer = setTimeout(runCycle, intervalTime);
             }, durationTime);
@@ -215,8 +289,16 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                             @keyframes slideUp {
                                 from { transform: translateY(100%); opacity: 0; }
                                 to   { transform: translateY(0);    opacity: 1; }
+                            }
+                            @keyframes typingDot {
+                                0%, 60%, 100% {
+                                    transform: translateY(0);
                                 }
-                                `}</style>
+                                30% {
+                                    transform: translateY(-4px);
+                                }
+                            }
+                        `}</style>
                         <ChatBubbleComponent config={widgetConfig} />
                     </div>
                 )}
@@ -240,7 +322,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                 >
                     {/* Pill container */}
                     {/* Notification bubble */}
-                    {config.notification && showNotification && !isOpen && pillVisible && (
+                    {config.notification && showNotification && !isOpen && !isTyping && pillVisible && (
                         <div style={{
                             position: 'relative',
                             background: '#ffffff',
@@ -287,7 +369,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                                     }} />
                                 </div>
                             )}
-                            {config.notification.message}
+                            <span dangerouslySetInnerHTML={{ __html: overrideNotificationMessage ?? config.notification.message ?? '' }} />
                             {/* Triangle pointer */}
                             <div style={{
                                 position: 'absolute',
@@ -374,7 +456,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                                 border: '2px solid rgba(255,255,255,0.4)',
                                 cursor: 'pointer',
                                 margin: '0 6px 0 0',
-                                overflow: 'hidden',
+                                overflow: 'visible',
                                 transition: 'transform 200ms ease',
                                 position: 'relative',
                             }}
@@ -386,6 +468,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                                 transition: 'all 300ms',
                                 transform: isOpen ? 'rotate(90deg) scale(0.8)' : 'rotate(0deg) scale(1)',
                                 opacity: isOpen ? 0 : 1,
+                                overflow: 'hidden',
+                                borderRadius: '50%',
                             }}>
                                 {launcherImage ? (
                                     <img
@@ -409,7 +493,76 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                                 <CloseIcon size={24} />
                             </div>
 
-                            {/* Notification dot — CSS ping */}
+                            {/* Typing indicator */}
+                            {!isOpen && isTyping && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '-4px',
+                                    left: '-4px',
+                                    minWidth: '32px',
+                                    height: '24px',
+                                    borderRadius: '12px',
+                                    background: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '3px',
+                                    padding: '0 8px',
+                                    border: '2px solid rgba(255,255,255,0.4)',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                                    zIndex: 1,
+                                }}>
+                                    <div style={{
+                                        width: '4px',
+                                        height: '4px',
+                                        borderRadius: '50%',
+                                        background: '#6b7280',
+                                        animation: 'typingDot 1.4s infinite',
+                                        animationDelay: '0s',
+                                    }} />
+                                    <div style={{
+                                        width: '4px',
+                                        height: '4px',
+                                        borderRadius: '50%',
+                                        background: '#6b7280',
+                                        animation: 'typingDot 1.4s infinite',
+                                        animationDelay: '0.2s',
+                                    }} />
+                                    <div style={{
+                                        width: '4px',
+                                        height: '4px',
+                                        borderRadius: '50%',
+                                        background: '#6b7280',
+                                        animation: 'typingDot 1.4s infinite',
+                                        animationDelay: '0.4s',
+                                    }} />
+                                </div>
+                            )}
+
+                            {/* Unread badge */}
+                            {!isOpen && !isTyping && unreadCount > 0 && !showNotification && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '-4px',
+                                    left: '-4px',
+                                    minWidth: '24px',
+                                    height: '24px',
+                                    borderRadius: '12px',
+                                    background: '#ef4444',
+                                    color: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    padding: '0 6px',
+                                    border: '2px solid white',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                                    zIndex: 1,
+                                }}>
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </div>
+                            )}
 
                         </button>
                     </div>
@@ -434,6 +587,16 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                 ...config.style,
             }}
         >
+            <style>{`
+                @keyframes typingDot {
+                    0%, 60%, 100% {
+                        transform: translateY(0);
+                    }
+                    30% {
+                        transform: translateY(-4px);
+                    }
+                }
+            `}</style>
             {/* Chat Window */}
             <div
                 style={{
@@ -495,7 +658,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                     outline: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    overflow: 'hidden',
+                    overflow: 'visible',
                     zIndex: baseZIndex + 1,
                 }}
             >
@@ -505,6 +668,8 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                     transition: 'all 300ms',
                     transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
                     opacity: isOpen ? 0 : 1,
+                    overflow: 'hidden',
+                    borderRadius: '9999px',
                 }}>
                     {launcherImage ? (
                         <img
@@ -533,12 +698,83 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                 }}>
                     <CloseIcon size={24} />
                 </div>
+
+                {/* Typing indicator */}
+                {!isOpen && isTyping && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '-4px',
+                        left: '-4px',
+                        minWidth: '32px',
+                        height: '24px',
+                        borderRadius: '12px',
+                        background: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '3px',
+                        padding: '0 8px',
+                        border: '2px solid #e5e7eb',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                        zIndex: 1,
+                    }}>
+                        <div style={{
+                            width: '4px',
+                            height: '4px',
+                            borderRadius: '50%',
+                            background: '#6b7280',
+                            animation: 'typingDot 1.4s infinite',
+                            animationDelay: '0s',
+                        }} />
+                        <div style={{
+                            width: '4px',
+                            height: '4px',
+                            borderRadius: '50%',
+                            background: '#6b7280',
+                            animation: 'typingDot 1.4s infinite',
+                            animationDelay: '0.2s',
+                        }} />
+                        <div style={{
+                            width: '4px',
+                            height: '4px',
+                            borderRadius: '50%',
+                            background: '#6b7280',
+                            animation: 'typingDot 1.4s infinite',
+                            animationDelay: '0.4s',
+                        }} />
+                    </div>
+                )}
+
+                {/* Unread badge */}
+                {!isOpen && !isTyping && unreadCount > 0 && !showNotification && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '-4px',
+                        left: '-4px',
+                        minWidth: '24px',
+                        height: '24px',
+                        borderRadius: '12px',
+                        background: '#ef4444',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        padding: '0 6px',
+                        border: '2px solid white',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                        zIndex: 1,
+                    }}>
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                    </div>
+                )}
             </button>
 
 
 
             {/* Notification Bubble */}
-            {config.notification && showNotification && !isOpen && (
+            {config.notification && showNotification && !isOpen && !isTyping && (
                 <div
                     style={{
                         position: 'absolute',
@@ -606,7 +842,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                                         }} />
                                     </div>
                                 )}
-                                {config.notification.message}
+                                <span dangerouslySetInnerHTML={{ __html: overrideNotificationMessage ?? config.notification.message ?? '' }} />
                                 <div style={{
                                     position: 'absolute',
                                     top: '100%',
