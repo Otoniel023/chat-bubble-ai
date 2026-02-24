@@ -37,9 +37,12 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
     const abortControllerRef = useRef<{ abort: () => void } | null>(null);
     const initialMessageInjected = useRef(false);
 
-    // Inject initial assistant message once on mount
+    // Inject initial assistant message, and update it when the language changes
     useEffect(() => {
-        if (initialMessage && !initialMessageInjected.current) {
+        if (!initialMessage) return;
+
+        if (!initialMessageInjected.current) {
+            // First mount: inject the message
             initialMessageInjected.current = true;
             setMessages([
                 {
@@ -50,9 +53,15 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
                     status: 'sent',
                 },
             ]);
+        } else {
+            // Language changed: replace the existing initial message in-place
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === 'initial-msg' ? { ...m, content: initialMessage } : m
+                )
+            );
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [initialMessage]);
 
     /**
      * Send a message stream to the agent service
