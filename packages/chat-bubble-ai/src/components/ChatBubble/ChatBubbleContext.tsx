@@ -266,6 +266,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
         clearMessages,
         clearError,
         injectMessage,
+        updateMessages: (newMessages: ChatMessage[]) => setMessages(newMessages),
     };
 
     return (

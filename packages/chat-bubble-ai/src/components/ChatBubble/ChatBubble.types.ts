@@ -475,4 +475,5 @@ export interface ChatContextValue {
     clearError: () => void;
     /** Inject a message directly into the chat history (e.g. initial greeting) */
     injectMessage: (content: string, role?: 'assistant' | 'user') => void;
+    updateMessages: (newMessages: ChatMessage[]) => void;
 }
