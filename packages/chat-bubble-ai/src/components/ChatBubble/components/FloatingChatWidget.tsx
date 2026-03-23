@@ -182,7 +182,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
             title: config.header?.title || 'Chat',
             avatar: config.header?.avatar || {
                 type: 'image',
-                src: 'https://photos.dominicanatours.com/imagenes/domi.webp',
+                src: '',
             },
             actions: [
                 ...(config.header?.actions || []),

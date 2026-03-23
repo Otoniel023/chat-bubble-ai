@@ -256,6 +256,7 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
                         <TypingIndicator
                             config={{
                                 show: true,
+                                avatar: header?.avatar,
                             }}
                         />
                     )}

@@ -47,7 +47,7 @@ export const Avatar: React.FC<AvatarProps> = ({ config, className = '' }) => {
                     if (icon === 'smart_toy') {
                         return (
                             <img
-                                src="https://photos.dominicanatours.com/imagenes/domi.webp"
+                                src=""
                                 alt={alt}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
@@ -64,7 +64,7 @@ export const Avatar: React.FC<AvatarProps> = ({ config, className = '' }) => {
                 // Fallback: default avatar image
                 return (
                     <img
-                        src="https://photos.dominicanatours.com/imagenes/domi.webp"
+                        src=""
                         alt={alt}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />

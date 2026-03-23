@@ -59,7 +59,7 @@ const chatConfig: ChatBubbleConfig = {
     header: {
         avatar: {
             type: 'image',
-            src: '/hola.png',
+            src: 'https://fotos.grupovdt.com/tropitours/imagenes/tropi.webp',
             backgroundColor: '#ffedd5', // bg-orange-100
             textColor: '#ea580c', // text-orange-600
         },
