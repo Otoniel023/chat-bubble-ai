@@ -1,0 +1,364 @@
+.floating-widget-wrapper {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+.floating-chat-window {
+  transform-origin: bottom right;
+  transition: all 300ms ease-out;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface-light, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  border: 1px solid var(--color-border-light, #e2e8f0);
+}
+
+.floating-chat-window.is-open {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+  width: min(450px, 90dvw);
+  height: min(650px, 80dvh);
+  margin-bottom: 8px;
+}
+
+.floating-chat-window.is-closed {
+  opacity: 0;
+  transform: scale(0.95) translateY(16px);
+  pointer-events: none;
+  width: min(400px, 90dvw);
+  height: 0px;
+  margin-bottom: 0;
+}
+
+.floating-chat-inner {
+  height: 100%;
+  width: 100%;
+}
+
+.floating-chat-tail {
+  position: relative;
+  right: 16px;
+  z-index: 50;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid #fb2c36;
+}
+
+.floating-toggle-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  background-color: #4f46e5;
+  color: #ffffff;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  transition: all 300ms;
+  outline: none;
+  border: none;
+  cursor: pointer;
+  overflow: visible;
+  z-index: 10000;
+  padding: 0;
+}
+
+.floating-launcher-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 300ms;
+  overflow: hidden;
+  border-radius: 9999px;
+}
+
+.floating-launcher-content.is-open {
+  transform: rotate(90deg) scale(0.8);
+  opacity: 0;
+}
+
+.floating-launcher-content.is-closed {
+  transform: rotate(0deg) scale(1);
+  opacity: 1;
+}
+
+.floating-launcher-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.floating-close-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  position: absolute;
+  transition: all 300ms;
+  color: white;
+}
+
+.floating-close-icon.is-open {
+  transform: rotate(0deg) scale(1);
+  opacity: 1;
+}
+
+.floating-close-icon.is-closed {
+  transform: rotate(-90deg) scale(0.8);
+  opacity: 0;
+}
+
+.floating-typing-indicator {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  min-width: 32px;
+  height: 24px;
+  border-radius: 12px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 8px;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.floating-typing-indicator.mobile {
+  border-color: rgba(255,255,255,0.4);
+}
+
+.floating-typing-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #6b7280;
+  animation: typingDot 1.4s infinite;
+}
+
+.floating-typing-dot:nth-child(1) { animation-delay: 0s; }
+.floating-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.floating-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+.floating-unread-badge {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  background: #ef4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 6px;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.floating-notification-wrapper {
+  position: absolute;
+  right: 0;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  pointer-events: none;
+  overflow: visible;
+  transform: translateX(-5px) translateY(-60px);
+}
+
+.floating-notification-inner {
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.floating-notification-bubble {
+  position: relative;
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  width: 100%;
+  text-align: left;
+  font-size: 0.95rem;
+  color: #1f2937;
+  overflow: visible;
+  z-index: 9999;
+}
+
+.floating-notification-arrow {
+  position: absolute;
+  top: 100%;
+  right: 16px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #ffffff;
+  filter: drop-shadow(0 2px 1px rgba(0,0,0,0.05));
+}
+
+/* Mobile Pill Styles */
+.floating-mobile-window {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: min(650px, 85dvh);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface-light, #ffffff);
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  animation: slideUp 250ms ease-out;
+}
+
+.floating-pill-wrapper {
+  position: fixed;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  transition: transform 300ms ease;
+  max-width: 100dvw;
+  overflow: visible;
+}
+
+.floating-pill-notification {
+  position: relative;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+  border: 1px solid #e5e7eb;
+  max-width: min(280px, calc(100dvw - 16px));
+  width: max-content;
+  font-size: 0.875rem;
+  color: #1f2937;
+  pointer-events: none;
+  z-index: 10001;
+  align-self: flex-end;
+  margin-bottom: 8px;
+  margin-right: 6px;
+  box-sizing: border-box;
+}
+
+.floating-pill-notification-arrow {
+  position: absolute;
+  bottom: -8px;
+  right: 20px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #ffffff;
+  filter: drop-shadow(0 2px 1px rgba(0,0,0,0.06));
+}
+
+.floating-pill-bar {
+  display: flex;
+  align-items: center;
+  border-radius: 9999px 0 0 9999px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+  border: 2px solid rgba(255,255,255,0.22);
+  border-right: none;
+}
+
+.floating-pill-arrow-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 64px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.floating-pill-arrow-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.22);
+  border: 2px solid rgba(255,255,255,0.45);
+}
+
+.floating-pill-launcher-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.4);
+  cursor: pointer;
+  margin: 0 6px 0 0;
+  overflow: visible;
+  transition: transform 200ms ease;
+  position: relative;
+  padding: 0;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
+
+/* Base style for ping, dynamic ones generated via JS */
+.floating-ping-dot-wrapper {
+  position: absolute;
+}
+.floating-ping-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+.floating-ping-solid {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  border-radius: 50%;
+  border: 2px solid white;
+}

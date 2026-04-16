@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Bubble AI - Vanilla Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      height: 700px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    #chat-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .header {
+      text-align: center;
+      padding: 20px;
+      background: white;
+      margin-bottom: 20px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      color: #333;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 1rem;
+    }
+
+    .info {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      color: #333;
+      font-size: 0.875rem;
+    }
+
+    .info code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div style="max-width: 1200px; width: 100%; display: flex; flex-direction: column; gap: 20px;">
+    <div class="header">
+      <h1>🤖 Chat Bubble AI - Vanilla Demo</h1>
+      <p>Framework-agnostic chat component</p>
+      <div class="info">
+        <strong>Build Info:</strong><br>
+        • JavaScript: <code>51.66 KB</code> (12.45 KB gzipped)<br>
+        • CSS: <code>28 KB</code> (6.26 KB gzipped)<br>
+        • Zero React dependencies • Works everywhere
+      </div>
+    </div>
+
+    <div class="container">
+      <div id="chat-container"></div>
+    </div>
+  </div>
+
+  <!-- Import vanilla version from dist -->
+  <link rel="stylesheet" href="./dist/vanilla/chat-bubble-ai-vanilla.css">
+  <script type="module">
+    import { createChatBubble } from './dist/vanilla/chat-bubble-ai-vanilla.js';
+
+    // Create chat instance
+    const chat = createChatBubble({
+      container: '#chat-container',
+      url: 'https://ai.grupovdt.com/api/agents/stream/domi',
+      token: 'tu-api-key-aqui', // Replace with actual API key
+      darkMode: false,
+      theme: {
+        cssVariables: {
+          colorPrimary: '#667eea',
+          colorPrimaryHover: '#5568d3',
+        },
+      },
+      header: {
+        title: 'AI Assistant',
+        subtitle: 'Powered by vanilla JavaScript',
+        avatar: {
+          type: 'icon',
+          icon: '🤖',
+          backgroundColor: 'rgba(102, 126, 234, 0.1)',
+          textColor: '#667eea',
+          size: 'md',
+        },
+        showBorder: true,
+      },
+      input: {
+        placeholder: 'Type your message...',
+        showSendButton: true,
+        disclaimer: 'AI-powered responses. Always verify important information.',
+      },
+      initialMessage: '¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
+    });
+
+    // Test API
+    console.log('Chat instance created:', chat);
+    console.log('Initial messages:', chat.getMessages());
+
+    // Make chat accessible in console for testing
+    window.chat = chat;
+  </script>
+</body>
+</html>

@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm run build:vanilla:*)",
+      "Bash(npm run build:all:*)",
+      "Bash(npm run build:lib:*)",
+      "Bash(npm run dev:*)"
     ]
   }
 }

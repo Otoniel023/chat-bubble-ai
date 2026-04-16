@@ -9,7 +9,38 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  // Library build mode (npm publish)
+  // Vanilla build mode (framework-agnostic version)
+  if (mode === 'vanilla') {
+    return {
+      plugins: [
+        tailwindcss(),
+        dts({
+          include: ['src/vanilla', 'src/services', 'src/utils', 'src/types', 'src/components/ChatBubble/ChatBubble.types.ts'],
+          tsconfigPath: './tsconfig.app.json',
+          insertTypesEntry: true,
+          outDir: 'dist/vanilla',
+        }),
+      ],
+      build: {
+        lib: {
+          entry: resolve(__dirname, 'src/vanilla/index.ts'),
+          name: 'ChatBubbleAIVanilla',
+          formats: ['es'],
+          fileName: 'chat-bubble-ai-vanilla',
+        },
+        outDir: 'dist/vanilla',
+        rollupOptions: {
+          // No externals - bundle everything
+          output: {
+            inlineDynamicImports: true,
+            assetFileNames: 'chat-bubble-ai-vanilla.[ext]',
+          },
+        },
+      },
+    }
+  }
+
+  // Library build mode (npm publish - React version)
   if (mode === 'lib') {
     return {
       plugins: [
