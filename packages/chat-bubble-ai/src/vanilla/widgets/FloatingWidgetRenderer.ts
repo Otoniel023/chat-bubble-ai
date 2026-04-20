@@ -17,6 +17,7 @@ export class FloatingWidgetRenderer {
   private unreadCount = 0;
   private isTyping = false;
   private isClosing = false;
+  private isAnimating = false; // Flag to control when animations should play
   
   // Notification override
   private overrideNotificationMessage: string | null = null;
@@ -75,6 +76,7 @@ export class FloatingWidgetRenderer {
     if (!open && this.isOpen) {
       // Closing: trigger animation first
       this.isClosing = true;
+      this.isAnimating = true;
       this.render();
 
       // Wait for animation to complete (250ms for mobile, 300ms for desktop)
@@ -82,6 +84,7 @@ export class FloatingWidgetRenderer {
       setTimeout(() => {
         this.isOpen = false;
         this.isClosing = false;
+        this.isAnimating = false;
         this.onToggleOpenListener(this.isOpen);
         this.render();
       }, animationDuration);
@@ -89,10 +92,16 @@ export class FloatingWidgetRenderer {
       // Opening: set state immediately
       this.isOpen = true;
       this.isClosing = false;
+      this.isAnimating = true;
       this.showNotification = false;
       this.unreadCount = 0;
       this.onToggleOpenListener(this.isOpen);
       this.render();
+
+      // Clear animating flag after animation completes
+      setTimeout(() => {
+        this.isAnimating = false;
+      }, this.isMobile && this.config.launcher?.mobilePill ? 250 : 300);
 
       // Scroll to bottom when opening with retry mechanism
       this.scrollToBottomWithRetry();
@@ -554,20 +563,24 @@ export class FloatingWidgetRenderer {
       ? Object.entries(this.config.style).map(([k, v]) => `${k.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`)}:${v}`).join(';')
       : '';
     const mobileFontFamily = `font-family: var(--font-sans, system-ui, sans-serif);`;
-    let chatHTML = '';
-    // Show chat window if open, closing, or if existingChatInner needs to be preserved
-    if (this.isOpen || this.isClosing || existingChatInner) {
+
+    // Always create chat window structure (even when closed) to ensure container exists for initialization
+    const display = (this.isOpen || this.isClosing) ? 'flex' : 'none';
+
+    // Only apply animation during actual open/close transitions
+    let animationStyle = '';
+    if (this.isAnimating) {
       const animation = this.isClosing
         ? 'chatBubbleSlideDown 250ms ease-out forwards'
         : 'chatBubbleSlideUp 250ms ease-out';
-      const display = (this.isOpen || this.isClosing) ? 'flex' : 'none';
-
-      chatHTML = `
-        <div class="floating-mobile-window" style="position: fixed; bottom: 0; left: 0; right: 0; height: min(650px, 85dvh); z-index: 10000; display: ${display}; flex-direction: column; background-color: var(--color-surface-light, #ffffff); box-shadow: 0 -8px 32px rgba(0,0,0,0.18); border-radius: 16px 16px 0 0; overflow: hidden; animation: ${animation}; ${mobileFontFamily} ${mobileConfigStyleStr}">
-          <div class="floating-chat-inner" id="floating-chat-inner" style="height: 100%; width: 100%; display: grid; grid-template-rows: auto 1fr auto;"></div>
-        </div>
-      `;
+      animationStyle = `animation: ${animation};`;
     }
+
+    const chatHTML = `
+      <div class="floating-mobile-window" style="position: fixed; bottom: 0; left: 0; right: 0; height: min(650px, 85dvh); z-index: 10000; display: ${display}; flex-direction: column; background-color: var(--color-surface-light, #ffffff); box-shadow: 0 -8px 32px rgba(0,0,0,0.18); border-radius: 16px 16px 0 0; overflow: hidden; ${animationStyle} ${mobileFontFamily} ${mobileConfigStyleStr}">
+        <div class="floating-chat-inner" id="floating-chat-inner" style="height: 100%; width: 100%; display: grid; grid-template-rows: auto 1fr auto;"></div>
+      </div>
+    `;
 
     const launcherImage = (this.showNotification && this.config.launcher?.animationImages?.length)
       ? this.config.launcher.animationImages[this.currentImageIndex]
@@ -606,7 +619,7 @@ export class FloatingWidgetRenderer {
 
     let pillHtml = `
       ${chatHTML}
-      <div class="floating-pill-wrapper" style="position: fixed; right: 0; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; transition: transform 300ms ease; max-width: 100dvw; overflow: visible; transform: translateX(${this.pillVisible ? '0' : 'calc(100% - 52px)'})">
+      <div class="floating-pill-wrapper" style="position: fixed; right: 0; bottom: 5px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; transition: transform 300ms ease; max-width: 100dvw; overflow: visible; transform: translateX(${this.pillVisible ? '0' : 'calc(100% - 52px)'})">
         ${notifHtml}
         <div class="floating-pill-bar" style="display: flex; align-items: center; border-radius: 9999px 0 0 9999px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.22); border: 2px solid rgba(255,255,255,0.22); border-right: none; background: ${pillColor}">
           <button class="floating-pill-arrow-btn" id="pill-arrow-btn" style="flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 52px; height: 64px; background: transparent; border: none; cursor: pointer; padding: 0;">
@@ -645,9 +658,11 @@ export class FloatingWidgetRenderer {
 
     this.wrapper.innerHTML = pillHtml;
 
+    // Restore existing chat content if it exists
     if (existingChatInner) {
-      if (this.wrapper.querySelector('#floating-chat-inner')) {
-        this.wrapper.querySelector('#floating-chat-inner')!.replaceWith(existingChatInner);
+      const newChatInner = this.wrapper.querySelector('#floating-chat-inner');
+      if (newChatInner) {
+        newChatInner.replaceWith(existingChatInner);
       }
     }
 

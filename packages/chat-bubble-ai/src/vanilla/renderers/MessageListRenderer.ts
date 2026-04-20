@@ -99,8 +99,13 @@ export class MessageListRenderer extends DOMRenderer {
       messageHtmlParts.push(MessageRenderer.render(message, this.defaultAvatar));
     });
 
-    // Add typing indicator
-    if (this.isTyping) {
+    // Show typing indicator only while waiting for first chunk
+    // Once streaming starts, the indicator disappears
+    const hasStreamingMessage = this.messages.some(
+      m => m.role === 'assistant' && m.status === 'streaming'
+    );
+
+    if (this.isTyping && !hasStreamingMessage) {
       messageHtmlParts.push(
         TypingIndicatorRenderer.render({
           show: true,

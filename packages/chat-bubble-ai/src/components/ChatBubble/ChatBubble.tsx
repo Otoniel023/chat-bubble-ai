@@ -251,8 +251,8 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
                         </React.Fragment>
                     ))}
 
-                    {/* Typing Indicator */}
-                    {isTyping && (
+                    {/* Typing Indicator - shown only while waiting for first chunk */}
+                    {isTyping && !messages.some(m => m.role === 'assistant' && m.status === 'streaming') && (
                         <TypingIndicator
                             config={{
                                 show: true,
