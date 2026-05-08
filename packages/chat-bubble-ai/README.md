@@ -144,7 +144,7 @@ export default function App() {
 | `message`         | `string`                | —       | **Required.** Text to show in the notification bubble. |
 | `interval`        | `number`                | `30000` | Time in ms between notification appearances.     |
 | `duration`        | `number`                | `5000`  | Time in ms the notification stays visible.       |
-| `showImmediately` | `boolean`               | `true`  | Show the notification right away on mount. Set to `false` to wait for the first `interval` before appearing. |
+| `showImmediately` | `boolean`               | `true`  | Show the notification right away on mount and prioritize it over the `initialMessage`. When `true`, the initial message will only appear when the user opens the chat. Set to `false` to wait for the first `interval` before appearing. |
 | `dot`             | `NotificationDotConfig` | —       | Customization for the red notification dot.      |
 
 #### `NotificationDotConfig`

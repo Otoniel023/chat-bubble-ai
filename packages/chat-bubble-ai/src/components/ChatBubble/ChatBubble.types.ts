@@ -293,7 +293,8 @@ export interface NotificationConfig {
     duration?: number; // Time visible in ms (default: 5000)
     /**
      * Whether to show the notification immediately on mount.
-     * - `true` (default): notification appears right away.
+     * - `true` (default): notification appears right away and is prioritized over `initialMessage`.
+     *   When true, the initial message will only appear when the user opens the chat.
      * - `false`: waits for the first `interval` before appearing.
      */
     showImmediately?: boolean;

@@ -18,7 +18,10 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     const [showNotification, setShowNotification] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [pillVisible, setPillVisible] = useState(true);
-    const [unreadCount, setUnreadCount] = useState(0);
+    // Initialize unreadCount to 1 if there's an initialMessage and chat is not defaultOpen
+    const [unreadCount, setUnreadCount] = useState(
+        config.initialMessage && !defaultOpen ? 1 : 0
+    );
 
     // Override message: when the AI responds while the chat is closed, show that
     // message as a temporary notification before resuming the normal cycle.
@@ -34,6 +37,11 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     const chatCtx = useContext(ChatBubbleContext);
     const initialMsgInjected = useRef(false);
     const isTyping = chatCtx?.isTyping || false;
+
+    // Check if we should prioritize the notification over initial message
+    const showImmediately = config.notification?.showImmediately !== false; // default true
+    const shouldPrioritizeNotification = config.notification && showImmediately;
+
     useEffect(() => {
         if (
             config.initialMessage &&
@@ -42,11 +50,22 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
             chatCtx.injectMessage &&
             !initialMsgInjected.current
         ) {
+            // If we should prioritize notification and chat is not open, delay initial message
+            if (shouldPrioritizeNotification && !isOpen) {
+                return; // Don't inject yet, wait until chat opens
+            }
+
+            // Inject the initial message (either immediately or when chat opens)
             initialMsgInjected.current = true;
-            chatCtx.injectMessage(config.initialMessage, 'assistant');
+            // Use setTimeout to ensure injection happens after state updates
+            setTimeout(() => {
+                if (chatCtx.injectMessage) {
+                    chatCtx.injectMessage(config.initialMessage!, 'assistant');
+                }
+            }, 0);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [config.initialMessage]);
+    }, [config.initialMessage, shouldPrioritizeNotification, isOpen]);
 
     // When the AI finishes responding while the chat is closed, show its message
     // as a temporary override notification.
@@ -114,10 +133,13 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
     }, [breakpoint]);
 
     const toggleOpen = () => {
-        setIsOpen(!isOpen);
-        if (!isOpen) {
+        const willOpen = !isOpen;
+        setIsOpen(willOpen);
+
+        if (willOpen) {
             setShowNotification(false);
             setUnreadCount(0); // Reset unread count when opening chat
+            // Note: initial message injection is handled by the useEffect above
         }
     };
 

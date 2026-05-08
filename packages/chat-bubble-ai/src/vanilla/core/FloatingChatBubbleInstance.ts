@@ -4,7 +4,8 @@ import { FloatingWidgetRenderer, FloatingWidgetRendererConfig } from '../widgets
 export class FloatingChatBubbleInstance extends ChatBubbleInstance {
   private widgetRenderer: FloatingWidgetRenderer;
   private rootConfig: FloatingWidgetRendererConfig;
-  
+  private initialMessageInjected = false;
+
   constructor(container: HTMLElement | string, config: FloatingWidgetRendererConfig) {
     // Resolve container
     let parentEl: HTMLElement;
@@ -20,15 +21,26 @@ export class FloatingChatBubbleInstance extends ChatBubbleInstance {
 
     // Override header config to append close button
     const enhancedConfig = { ...config };
-    enhancedConfig.header = enhancedConfig.header || { 
-      title: 'Chat', 
-      avatar: { type: 'icon', icon: '💬' } 
+    enhancedConfig.header = enhancedConfig.header || {
+      title: 'Chat',
+      avatar: { type: 'icon', icon: '💬' }
     };
+
+    // Check if we should prioritize notification over initial message
+    const showImmediately = config.notification?.showImmediately !== false;
+    const shouldPrioritizeNotification = config.notification && showImmediately;
+
+    // If prioritizing notification and chat is not defaultOpen, remove initialMessage
+    // from config passed to super (will be injected later when chat opens)
+    const configForSuper = { ...enhancedConfig };
+    if (shouldPrioritizeNotification && !config.defaultOpen) {
+      delete configForSuper.initialMessage;
+    }
 
     // We pass a dummy element to super so that it doesn't overwrite parentEl styles and innerHTML
     const dummyInner = document.createElement('div');
-    super(dummyInner as HTMLElement, enhancedConfig);
-    this.rootConfig = enhancedConfig;
+    super(dummyInner as HTMLElement, configForSuper);
+    this.rootConfig = enhancedConfig; // Keep original config with initialMessage
 
     // Initialize widget renderer which attaches itself to parentEl
     this.widgetRenderer = new FloatingWidgetRenderer(parentEl, config);
@@ -105,12 +117,25 @@ export class FloatingChatBubbleInstance extends ChatBubbleInstance {
       stateManager.on('typing:changed', (isTyping: boolean) => {
         this.widgetRenderer.updateTypingState(isTyping);
       });
-      // also initial inject
-      if (this.rootConfig.initialMessage && stateManager.getMessages().length === 0) {
-        this.injectMessage({
-          content: this.rootConfig.initialMessage,
-          role: 'assistant',
-          status: 'sent'
+
+      // Handle initial message injection for notification priority
+      // If notification is configured with showImmediately: true and chat is not defaultOpen,
+      // the initialMessage was removed from config in constructor and needs to be injected
+      // when chat opens for the first time
+      const showImmediately = this.rootConfig.notification?.showImmediately !== false;
+      const shouldPrioritizeNotification = this.rootConfig.notification && showImmediately;
+
+      if (this.rootConfig.initialMessage && shouldPrioritizeNotification && !this.rootConfig.defaultOpen) {
+        // Inject when chat opens for the first time
+        this.widgetRenderer.onToggleOpen((isOpen: boolean) => {
+          if (isOpen && !this.initialMessageInjected) {
+            this.initialMessageInjected = true;
+            this.injectMessage({
+              content: this.rootConfig.initialMessage!,
+              role: 'assistant',
+              status: 'sent'
+            });
+          }
         });
       }
     }

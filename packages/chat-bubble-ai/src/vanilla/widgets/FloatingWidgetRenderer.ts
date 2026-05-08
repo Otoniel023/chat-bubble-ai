@@ -40,10 +40,15 @@ export class FloatingWidgetRenderer {
     this.container = container;
     this.config = config;
     this.isOpen = !!config.defaultOpen;
-    
+
+    // Initialize unreadCount to 1 if there's an initialMessage and chat is not defaultOpen
+    if (config.initialMessage && !config.defaultOpen) {
+      this.unreadCount = 1;
+    }
+
     this.wrapper = document.createElement('div');
     this.container.appendChild(this.wrapper);
-    
+
     this.initMobileDetection();
     this.initPingStyle();
   }
