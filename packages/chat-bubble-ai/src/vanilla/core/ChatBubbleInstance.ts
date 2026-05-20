@@ -9,6 +9,7 @@ import { ThemeManager } from './ThemeManager';
 import { HeaderRenderer } from '../renderers/HeaderRenderer';
 import { MessageListRenderer } from '../renderers/MessageListRenderer';
 import { InputRenderer } from '../renderers/InputRenderer';
+import { SuggestedRepliesRenderer } from '../renderers/SuggestedRepliesRenderer';
 import { agentService } from '../../services/agent.service';
 import { qs, clearChildren } from '../utils/dom';
 import { generateId } from '../utils/templates';
@@ -20,6 +21,7 @@ export class ChatBubbleInstance {
   private themeManager: ThemeManager;
   private headerRenderer?: HeaderRenderer;
   private messageListRenderer?: MessageListRenderer;
+  private suggestionsRenderer?: SuggestedRepliesRenderer;
   private inputRenderer?: InputRenderer;
   private initialized = false;
 
@@ -125,6 +127,12 @@ export class ChatBubbleInstance {
     messagesContainer.style.minHeight = '0'; // Important for flex children to scroll
     this.container.appendChild(messagesContainer);
 
+    // Create suggestions container (between messages and input)
+    const suggestionsContainer = document.createElement('div');
+    suggestionsContainer.id = 'chat-suggestions-container';
+    suggestionsContainer.style.flexShrink = '0';
+    this.container.appendChild(suggestionsContainer);
+
     // Create input container
     const inputContainer = document.createElement('div');
     inputContainer.id = 'chat-input-container';
@@ -138,6 +146,7 @@ export class ChatBubbleInstance {
   private createRenderers(): void {
     const headerContainer = qs<HTMLElement>('#chat-header-container', this.container);
     const messagesContainer = qs<HTMLElement>('#chat-messages-container', this.container);
+    const suggestionsContainer = qs<HTMLElement>('#chat-suggestions-container', this.container);
     const inputContainer = qs<HTMLElement>('#chat-input-container', this.container);
 
     if (!headerContainer || !messagesContainer || !inputContainer) {
@@ -174,6 +183,13 @@ export class ChatBubbleInstance {
       this.config.dateSeparator
     );
     this.messageListRenderer.mount(messagesContainer);
+
+    // Suggested replies renderer
+    if (suggestionsContainer) {
+      this.suggestionsRenderer = new SuggestedRepliesRenderer();
+      this.suggestionsRenderer.onSend((message) => this.sendMessage(message));
+      this.suggestionsRenderer.mount(suggestionsContainer);
+    }
 
     // Input renderer
     this.inputRenderer = new InputRenderer(
@@ -223,6 +239,13 @@ export class ChatBubbleInstance {
         console.error('Chat error:', error);
       }
     });
+
+    // Suggestions changed
+    this.stateManager.on('suggestions:changed', (suggestions: string[]) => {
+      if (this.suggestionsRenderer) {
+        this.suggestionsRenderer.updateSuggestions(suggestions);
+      }
+    });
   }
 
   /**
@@ -235,8 +258,9 @@ export class ChatBubbleInstance {
       return;
     }
 
-    // Clear previous errors
+    // Clear previous errors and suggestions
     this.stateManager.clearError();
+    this.stateManager.clearSuggestions();
 
     // Add user message
     const userMessage: ChatMessage = {
@@ -281,11 +305,41 @@ export class ChatBubbleInstance {
           }
         },
         onComplete: () => {
-          this.stateManager.updateMessage(assistantMessageId, {
-            status: 'sent',
-          });
+          // Detect carousel and suggestions JSON embedded in the streamed content
+          const carouselMatch = fullContent.match(/\{"type":"carousel","images":\[[\s\S]*?\]\}/);
+          const suggestionsMatch = fullContent.match(/\{"type":"suggestions","items":\[[\s\S]*?\]\}/);
+
+          let cleanContent = fullContent;
+          const msgUpdate: Partial<ChatMessage> = { status: 'sent' };
+
+          if (carouselMatch) {
+            try {
+              const parsed = JSON.parse(carouselMatch[0]) as { type: string; images: string[] };
+              msgUpdate.type = 'carousel';
+              msgUpdate.images = parsed.images;
+            } catch { /* ignore malformed JSON */ }
+            cleanContent = cleanContent.replace(carouselMatch[0], '').trim();
+          }
+
+          if (suggestionsMatch) {
+            try {
+              const parsed = JSON.parse(suggestionsMatch[0]) as { type: string; items: string[] };
+              this.stateManager.setSuggestions(parsed.items || []);
+            } catch { /* ignore malformed JSON */ }
+            cleanContent = cleanContent.replace(suggestionsMatch[0], '').trim();
+          }
+
+          msgUpdate.content = cleanContent;
+          this.stateManager.updateMessage(assistantMessageId, msgUpdate);
           this.stateManager.setTyping(false);
           this.stateManager.setLoading(false);
+
+          // Scroll to top of last assistant message so user reads top-down
+          setTimeout(() => {
+            if (this.messageListRenderer) {
+              this.messageListRenderer.scrollToMessage(assistantMessageId);
+            }
+          }, 80);
         },
         onError: (err: Error) => {
           // Check if we should show error as message
@@ -368,6 +422,7 @@ export class ChatBubbleInstance {
     // Cleanup renderers
     this.headerRenderer?.destroy();
     this.messageListRenderer?.destroy();
+    this.suggestionsRenderer?.destroy();
     this.inputRenderer?.destroy();
 
     // Cleanup state

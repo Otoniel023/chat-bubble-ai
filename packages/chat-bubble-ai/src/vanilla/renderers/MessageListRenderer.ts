@@ -142,10 +142,63 @@ export class MessageListRenderer extends DOMRenderer {
   }
 
   /**
-   * Hook called after mount - scroll to bottom
+   * Scroll so the top of the given message id is visible (used after streaming completes)
+   */
+  scrollToMessage(messageId: string): void {
+    if (!this.element) return;
+    const msgEl = this.element.querySelector<HTMLElement>(`[data-message-id="${messageId}"]`);
+    if (msgEl) {
+      msgEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  /**
+   * Hook called after mount - scroll to bottom and wire carousel delegation
    */
   protected onMount(): void {
-    // Initial scroll to bottom
     setTimeout(() => this.scrollToBottom(false), 100);
+
+    // Event delegation for carousel navigation — survives innerHTML updates
+    if (this.element) {
+      this.element.addEventListener('click', (e: Event) => {
+        const target = e.target as HTMLElement;
+        const carousel = target.closest('.image-carousel') as HTMLElement | null;
+        if (!carousel) return;
+
+        const images = JSON.parse(
+          carousel.getAttribute('data-carousel-images') || '[]'
+        ) as string[];
+        let current = parseInt(carousel.getAttribute('data-current') || '0', 10);
+
+        if (target.closest('.carousel-prev')) {
+          current = (current - 1 + images.length) % images.length;
+        } else if (target.closest('.carousel-next')) {
+          current = (current + 1) % images.length;
+        } else {
+          const dot = target.closest('[data-dot-index]') as HTMLElement | null;
+          if (dot) {
+            current = parseInt(dot.dataset.dotIndex || '0', 10);
+          } else {
+            return;
+          }
+        }
+
+        carousel.setAttribute('data-current', String(current));
+
+        const img = carousel.querySelector<HTMLImageElement>('.carousel-img');
+        if (img) {
+          img.src = images[current];
+          img.alt = `Image ${current + 1} of ${images.length}`;
+        }
+
+        const counter = carousel.querySelector<HTMLElement>('.carousel-counter');
+        if (counter) counter.textContent = `${current + 1}/${images.length}`;
+
+        carousel.querySelectorAll<HTMLElement>('[data-dot-index]').forEach((dot, i) => {
+          dot.style.background =
+            i === current ? 'var(--color-primary, #137fec)' : '#cbd5e1';
+        });
+      });
+    }
   }
 }

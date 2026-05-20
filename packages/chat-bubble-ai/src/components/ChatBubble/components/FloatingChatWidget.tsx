@@ -321,7 +321,7 @@ export const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({
                                 }
                             }
                         `}</style>
-                        <ChatBubbleComponent config={widgetConfig} />
+                        <ChatBubbleComponent config={widgetConfig} isOpen={isOpen} />
                     </div>
                 )}
 

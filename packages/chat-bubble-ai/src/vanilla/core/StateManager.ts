@@ -11,6 +11,7 @@ export interface ChatState {
   isTyping: boolean;
   isLoading: boolean;
   error: string | null;
+  suggestions: string[];
 }
 
 /**
@@ -31,6 +32,7 @@ export class StateManager extends EventEmitter {
       isTyping: false,
       isLoading: false,
       error: null,
+      suggestions: [],
     };
   }
 
@@ -146,6 +148,29 @@ export class StateManager extends EventEmitter {
   }
 
   /**
+   * Set suggested replies
+   */
+  setSuggestions(suggestions: string[]): void {
+    this.state.suggestions = suggestions;
+    this.emit('suggestions:changed', suggestions);
+    this.emit('state:changed', this.state);
+  }
+
+  /**
+   * Get suggestions
+   */
+  getSuggestions(): string[] {
+    return this.state.suggestions;
+  }
+
+  /**
+   * Clear suggestions
+   */
+  clearSuggestions(): void {
+    this.setSuggestions([]);
+  }
+
+  /**
    * Reset to initial state
    */
   reset(): void {
@@ -154,11 +179,13 @@ export class StateManager extends EventEmitter {
       isTyping: false,
       isLoading: false,
       error: null,
+      suggestions: [],
     };
     this.emit('messages:changed', this.state.messages);
     this.emit('typing:changed', this.state.isTyping);
     this.emit('loading:changed', this.state.isLoading);
     this.emit('error:changed', this.state.error);
+    this.emit('suggestions:changed', this.state.suggestions);
     this.emit('state:changed', this.state);
   }
 
