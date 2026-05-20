@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(git commit:*)",
-      "Bash(git *)"
+      "Bash(npm run build:vanilla:*)",
+      "Bash(npm run build:all:*)",
+      "Bash(npm run build:lib:*)",
+      "Bash(npm run dev:*)",
+      "Bash(git -C \"C:\\\\Users\\\\orodriguez\\\\Proyectos\\\\chat-bubble-ai\" show HEAD:packages/chat-bubble-ai/prototype/code.html)"
     ]
   }
 }

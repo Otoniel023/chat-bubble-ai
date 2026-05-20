@@ -1,0 +1,7 @@
+/**
+ * Chat Bubble AI Vanilla - Styles
+ * This file imports all necessary styles for the vanilla version
+ */
+
+/* Import main component styles from React version */
+@import '../components/ChatBubble/ChatBubble.styles.css';

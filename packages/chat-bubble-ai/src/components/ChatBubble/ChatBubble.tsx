@@ -21,12 +21,13 @@ import { SuggestedReplies } from './components/SuggestedReplies';
 
 interface ChatBubbleComponentProps {
     config: ChatBubbleConfig;
+    isOpen?: boolean;
 }
 
 /**
  * Internal ChatBubble component that must be rendered inside a ChatBubbleProvider.
  */
-export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config }) => {
+export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config, isOpen }) => {
     const {
         theme,
         header,
@@ -169,13 +170,21 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
         return vars as React.CSSProperties;
     };
 
+    // Scroll to bottom when chat opens (widget becomes visible)
+    useEffect(() => {
+        if (isOpen) {
+            setTimeout(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+            }, 50); // small delay lets the panel animation start first
+        }
+    }, [isOpen]);
+
     // Auto-scroll: follow bottom while streaming, jump to top of response when done
     useEffect(() => {
         if (isTyping) {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
             wasTypingRef.current = true;
         } else if (wasTypingRef.current) {
-            // Agent just finished — scroll to the start of the response so user reads top-down
             lastAssistantRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             wasTypingRef.current = false;
         }
@@ -263,17 +272,18 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
                                     key={message.id}
                                     ref={message.id === lastAssistantId ? lastAssistantRef : null}
                                 >
-                                    <ChatMessage message={message} />
+                                    <ChatMessage message={message} defaultAvatar={header?.avatar} />
                                 </div>
                             ))}
                         </React.Fragment>
                     ))}
 
-                    {/* Typing Indicator */}
-                    {isTyping && (
+                    {/* Typing Indicator - shown only while waiting for first chunk */}
+                    {isTyping && !messages.some(m => m.role === 'assistant' && m.status === 'streaming') && (
                         <TypingIndicator
                             config={{
                                 show: true,
+                                avatar: header?.avatar,
                             }}
                         />
                     )}

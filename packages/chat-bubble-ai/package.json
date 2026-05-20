@@ -1,6 +1,6 @@
 {
   "name": "chat-bubble-ai",
-  "version": "1.1.0",
+  "version": "2.0.4",
   "type": "module",
   "description": "A customizable AI chat bubble component for React",
   "keywords": [
@@ -26,7 +26,13 @@
       "import": "./dist/chat-bubble-ai.js",
       "require": "./dist/chat-bubble-ai.umd.cjs"
     },
-    "./style.css": "./dist/chat-bubble-ai.css"
+    "./vanilla": {
+      "source": "./src/vanilla/index.ts",
+      "types": "./dist/vanilla/index.d.ts",
+      "import": "./dist/vanilla/chat-bubble-ai-vanilla.js"
+    },
+    "./style.css": "./dist/chat-bubble-ai.css",
+    "./vanilla/style.css": "./dist/vanilla/chat-bubble-ai-vanilla.css"
   },
   "files": [
     "dist"
@@ -35,6 +41,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:lib": "vite build --mode lib",
+    "build:vanilla": "vite build --mode vanilla",
+    "build:all": "npm run build:lib && npm run build:vanilla && node -e \"require('fs').copyFileSync('dist/chat-bubble-ai.css', 'dist/vanilla/chat-bubble-ai-vanilla.css')\"",
     "lint": "eslint .",
     "preview": "vite preview"
   },

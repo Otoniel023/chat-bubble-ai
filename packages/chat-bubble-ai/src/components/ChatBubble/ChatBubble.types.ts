@@ -295,7 +295,8 @@ export interface NotificationConfig {
     duration?: number; // Time visible in ms (default: 5000)
     /**
      * Whether to show the notification immediately on mount.
-     * - `true` (default): notification appears right away.
+     * - `true` (default): notification appears right away and is prioritized over `initialMessage`.
+     *   When true, the initial message will only appear when the user opens the chat.
      * - `false`: waits for the first `interval` before appearing.
      */
     showImmediately?: boolean;
@@ -479,4 +480,5 @@ export interface ChatContextValue {
     clearSuggestions: () => void;
     /** Inject a message directly into the chat history (e.g. initial greeting) */
     injectMessage: (content: string, role?: 'assistant' | 'user') => void;
+    updateMessages: (newMessages: ChatMessage[]) => void;
 }

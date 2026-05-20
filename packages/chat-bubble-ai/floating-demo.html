@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Bubble AI - Vanilla Floating Widget</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 30px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 100%;
+    }
+    .header h1 { color: #333; font-size: 2rem; margin-bottom: 0.5rem; }
+    .header p { color: #666; font-size: 1rem; margin-bottom: 20px; }
+    .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+    button.action-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      background: #4f46e5;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    button.action-btn:hover { background: #4338ca; }
+  </style>
+  <!-- Tailwind CSS will be injected by Vite in dev mode -->
+</head>
+<body>
+  <div class="header">
+    <h1>🎈 Vanilla Floating Widget</h1>
+    <p>A completely vanilla JS floating chat widget with notifications and pill mode.</p>
+
+    <div class="btn-group">
+      <button class="action-btn" onclick="window.chat.open()">Open</button>
+      <button class="action-btn" onclick="window.chat.close()">Close</button>
+      <button class="action-btn" onclick="window.chat.toggle()">Toggle</button>
+    </div>
+  </div>
+
+  <div id="floating-widget-root"></div>
+
+  <!-- Import vanilla version from source in dev mode -->
+
+  <script type="module">
+    // Import Tailwind and component styles
+    import './src/index.css';
+    import './src/components/ChatBubble/ChatBubble.styles.css';
+
+    import { createFloatingChatBubble } from './src/vanilla/index.ts';
+
+    const chat = createFloatingChatBubble({
+      container: '#floating-widget-root',
+      url: 'https://ai.grupovdt.com/api/agents/stream/domi',
+      token: '4XPNFnS4Ew4k8dkDhw+6sqMAPBkaT5KjZcUt4NqGsz0=',
+      darkMode: false,
+      theme: {
+        cssVariables: {
+          colorPrimary: '#ff8800',
+          colorPrimaryHover: '#e67a00',
+          fontSans: "'Inter', sans-serif",
+        },
+        messageBubbles: {
+          user: {
+            background: '#fb923c',
+            textColor: '#ffffff',
+          },
+          assistant: {
+            background: '#ffffff',
+            textColor: '#000000',
+          },
+        },
+        backgrounds: {
+          chat: 'linear-gradient(135deg, #d0eefe 0%, #7bc5e8 100%)',
+        },
+      },
+      header: {
+        avatar: {
+          type: 'image',
+          src: 'https://fotos.grupovdt.com/tropitours/imagenes/tropi.webp',
+          backgroundColor: '#ffedd5',
+          textColor: '#ea580c',
+        },
+        title: 'DominicanaTours',
+        subtitle: 'Nº1 en Viajes al Caribe',
+        actions: [],
+        showBorder: true,
+      },
+      input: {
+        placeholder: 'Escribe tu consulta aquí...',
+        showAttachment: true,
+        showEmoji: true,
+        showVoice: false,
+        showSendButton: true,
+        disclaimer: 'Asistente Virtual de Dominicana Tours',
+        sendButtonColor: '#f1984d',
+        sendButtonDisabledColor: '#cbd5e1',
+      },
+      launcher: {
+        imageUrl: 'https://photos.dominicanatours.com/imagenes/domi.webp',
+        animationImages: [
+          'https://photos.dominicanatours.com/imagenes/domi-1.webp',
+          'https://photos.dominicanatours.com/imagenes/domi.webp',
+        ],
+        animationInterval: 400,
+        color: '#ff8800',
+        mobilePill: {
+          color: 'linear-gradient(135deg, #ff8800 0%, #ed5c00 100%)',
+          bottom: '1dvh',
+          breakpoint: 768,
+        },
+      },
+      feedback: {
+        apiError: '¡Oops! Parece que estoy teniendo problemas para conectar. Por favor intenta de nuevo en unos momentos.',
+      },
+      notification: {
+        message: '¡Estoy aquí para cualquier duda que puedas tener!',
+        interval: 50000,
+        duration: 10000,
+        dot: {
+          show: true,
+          color: '#ff8800',
+          ringColor: '#f99',
+          size: 10,
+          animationDuration: 1.2,
+          animationScale: 2.2,
+          position: {
+            top: '4%',
+            right: '92%',
+          },
+        },
+      },
+      initialMessage: '¡Hola, bienvenido! <br><br> Soy el agente virtual de DominicanaTours.<br><br>Estoy encantado de ayudarte con información sobre tus reservas y cualquier inquietud que tengas.',
+    });
+
+    // Make chat accessible in console and to buttons for testing
+    window.chat = chat;
+    chat.open();
+    console.log('Floating chat instance created:', chat);
+  </script>
+</body>
+</html>
