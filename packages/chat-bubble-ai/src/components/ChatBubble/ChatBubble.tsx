@@ -17,6 +17,7 @@ import { ChatMessage } from './components/ChatMessage';
 import { ChatInput } from './components/ChatInput';
 import { TypingIndicator } from './components/TypingIndicator';
 import { DateSeparator } from './components/DateSeparator';
+import { SuggestedReplies } from './components/SuggestedReplies';
 
 interface ChatBubbleComponentProps {
     config: ChatBubbleConfig;
@@ -52,6 +53,8 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
 
     // Ref for auto-scrolling
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const lastAssistantRef = useRef<HTMLDivElement>(null);
+    const wasTypingRef = useRef(false);
 
     // Merge theme with defaults
     const mergedTheme: ChatTheme = {
@@ -166,9 +169,16 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
         return vars as React.CSSProperties;
     };
 
-    // Auto-scroll to latest message
+    // Auto-scroll: follow bottom while streaming, jump to top of response when done
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (isTyping) {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            wasTypingRef.current = true;
+        } else if (wasTypingRef.current) {
+            // Agent just finished — scroll to the start of the response so user reads top-down
+            lastAssistantRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            wasTypingRef.current = false;
+        }
     }, [messages, isTyping]);
 
     // Group messages by date
@@ -189,6 +199,9 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
     };
 
     const groupedMessages = groupMessagesByDate();
+
+    // ID of the last assistant message — used to scroll its top into view when done
+    const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id ?? null;
 
     // Helper to get theme value
     const getThemeVar = (lightVar: string, darkVar: string) => {
@@ -246,7 +259,12 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
 
                             {/* Messages for this date */}
                             {dateMessages.map((message) => (
-                                <ChatMessage key={message.id} message={message} />
+                                <div
+                                    key={message.id}
+                                    ref={message.id === lastAssistantId ? lastAssistantRef : null}
+                                >
+                                    <ChatMessage message={message} />
+                                </div>
                             ))}
                         </React.Fragment>
                     ))}
@@ -267,6 +285,9 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
             </main>
 
             {/* Input */}
+            {/* Suggested replies — shown between messages and input when available */}
+            <SuggestedReplies />
+
             {input && <ChatInput config={input} />}
 
         </div>

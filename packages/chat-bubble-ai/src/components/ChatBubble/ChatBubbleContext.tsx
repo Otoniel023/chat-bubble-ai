@@ -1,7 +1,6 @@
 /**
  * ChatBubbleContext
- * Manages chat messages, typing status, loading, and errors.
- * Provides sendMessage, clearMessages, and clearError functions.
+ * Manages chat messages, typing status, loading, errors, and suggested replies.
  */
 
 import React, { createContext, useState, useCallback, useRef, useEffect } from 'react';
@@ -24,8 +23,6 @@ interface ChatBubbleProviderProps {
 
 export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
     children,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     // agentId,
     apiErrorMessage,
     initialMessage,
@@ -34,6 +31,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
     const [isTyping, setIsTyping] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [suggestions, setSuggestions] = useState<string[]>([]);
     const abortControllerRef = useRef<{ abort: () => void } | null>(null);
     const initialMessageInjected = useRef(false);
 
@@ -54,23 +52,21 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    /**
-     * Send a message stream to the agent service
-     */
     const sendMessageStreamInternal = async (
         message: string,
         onChunk: (chunk: string) => void,
         onComplete: () => void,
         onError: (err: Error) => void,
+        onCarousel?: (images: string[]) => void,
+        onSuggestions?: (items: string[]) => void,
     ): Promise<void> => {
-        // Create abort controller for this request
         const streamCtrl = createStreamController();
         abortControllerRef.current = streamCtrl;
 
         try {
             await agentService.sendMessageStream(
                 message,
-                { onChunk, onComplete, onError },
+                { onChunk, onComplete, onError, onCarousel, onSuggestions },
                 streamCtrl.signal
             );
         } catch (err: unknown) {
@@ -82,17 +78,13 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
         }
     };
 
-    /**
-     * Send a message and handle the streaming response
-     */
     const sendMessage = useCallback(
         async (content: string) => {
             if (!content.trim()) return;
 
-            // Clear any previous errors
             setError(null);
+            setSuggestions([]);
 
-            // Create user message
             const userMessage: ChatMessage = {
                 id: `msg-${Date.now()}`,
                 content: content.trim(),
@@ -105,12 +97,10 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
             setIsTyping(true);
             setIsLoading(true);
 
-            // Create assistant message placeholder
             const assistantMessageId = `msg-${Date.now() + 1}`;
             let fullContent = '';
 
             try {
-                // Cancel any ongoing stream
                 if (abortControllerRef.current) {
                     abortControllerRef.current.abort();
                 }
@@ -142,24 +132,49 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
                             }
                         });
                     },
-                    // onComplete
+                    // onComplete — also detects inline carousel/suggestions JSON
                     () => {
                         setMessages((prev) =>
-                            prev.map((m) =>
-                                m.id === assistantMessageId
-                                    ? { ...m, status: 'sent' as const }
-                                    : m
-                            )
+                            prev.map((m) => {
+                                if (m.id !== assistantMessageId) return m;
+
+                                let text = fullContent;
+                                let messageUpdates: Partial<ChatMessage> = { status: 'sent' as const };
+
+                                // Detect inline carousel JSON
+                                const carouselMatch = text.match(/\{"type":"carousel","images":\[[\s\S]*?\]\}/);
+                                if (carouselMatch) {
+                                    try {
+                                        const parsed = JSON.parse(carouselMatch[0]) as { type: string; images?: string[] };
+                                        if (parsed.type === 'carousel' && Array.isArray(parsed.images) && parsed.images.length > 0) {
+                                            text = text.replace(carouselMatch[0], '').trim();
+                                            messageUpdates = { ...messageUpdates, type: 'carousel' as const, images: parsed.images };
+                                        }
+                                    } catch { /* treat as plain text */ }
+                                }
+
+                                // Detect inline suggestions JSON
+                                const suggestionsMatch = text.match(/\{"type":"suggestions","items":\[[\s\S]*?\]\}/);
+                                if (suggestionsMatch) {
+                                    try {
+                                        const parsed = JSON.parse(suggestionsMatch[0]) as { type: string; items?: string[] };
+                                        if (parsed.type === 'suggestions' && Array.isArray(parsed.items) && parsed.items.length > 0) {
+                                            text = text.replace(suggestionsMatch[0], '').trim();
+                                            setSuggestions(parsed.items);
+                                        }
+                                    } catch { /* treat as plain text */ }
+                                }
+
+                                return { ...m, ...messageUpdates, content: text };
+                            })
                         );
                         setIsTyping(false);
                         setIsLoading(false);
                     },
                     // onError
                     (err: Error) => {
-                        // If we have an API error message configured, show it as an assistant response
                         if (apiErrorMessage) {
                             setMessages((prev) => {
-                                // Check if we already created a placeholder
                                 const existing = prev.find((m) => m.id === assistantMessageId);
                                 if (existing) {
                                     return prev.map((m) =>
@@ -167,19 +182,17 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
                                             ? { ...m, content: apiErrorMessage, status: 'sent' as const }
                                             : m
                                     );
-                                } else {
-                                    // Or create new one if it failed before first chunk
-                                    return [
-                                        ...prev,
-                                        {
-                                            id: assistantMessageId,
-                                            content: apiErrorMessage,
-                                            role: 'assistant' as const,
-                                            timestamp: new Date().toISOString(),
-                                            status: 'sent' as const,
-                                        },
-                                    ];
                                 }
+                                return [
+                                    ...prev,
+                                    {
+                                        id: assistantMessageId,
+                                        content: apiErrorMessage,
+                                        role: 'assistant' as const,
+                                        timestamp: new Date().toISOString(),
+                                        status: 'sent' as const,
+                                    },
+                                ];
                             });
                         } else {
                             setError(err.message || 'Failed to get response');
@@ -187,12 +200,24 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
                         setIsTyping(false);
                         setIsLoading(false);
                     },
+                    // onCarousel — via SSE "event: carousel"
+                    (images: string[]) => {
+                        setMessages((prev) =>
+                            prev.map((m) =>
+                                m.id === assistantMessageId
+                                    ? { ...m, type: 'carousel' as const, images }
+                                    : m
+                            )
+                        );
+                    },
+                    // onSuggestions — via SSE "event: suggestions"
+                    (items: string[]) => {
+                        setSuggestions(items);
+                    },
                 );
             } catch (err) {
-                // If we have an API error message configured, show it as an assistant response
                 if (apiErrorMessage) {
                     setMessages((prev) => {
-                        // Check if we already created a placeholder
                         const existing = prev.find((m) => m.id === assistantMessageId);
                         if (existing) {
                             return prev.map((m) =>
@@ -200,26 +225,22 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
                                     ? { ...m, content: apiErrorMessage, status: 'sent' as const }
                                     : m
                             );
-                        } else {
-                            // Or create new one if it failed immediately
-                            return [
-                                ...prev,
-                                {
-                                    id: assistantMessageId,
-                                    content: apiErrorMessage,
-                                    role: 'assistant' as const,
-                                    timestamp: new Date().toISOString(),
-                                    status: 'sent' as const,
-                                },
-                            ];
                         }
+                        return [
+                            ...prev,
+                            {
+                                id: assistantMessageId,
+                                content: apiErrorMessage,
+                                role: 'assistant' as const,
+                                timestamp: new Date().toISOString(),
+                                status: 'sent' as const,
+                            },
+                        ];
                     });
                 } else {
-                    const errorMessage =
-                        err instanceof Error ? err.message : 'An unexpected error occurred';
+                    const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
                     setError(errorMessage);
                 }
-
                 setIsTyping(false);
                 setIsLoading(false);
             }
@@ -233,6 +254,10 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
 
     const clearError = useCallback(() => {
         setError(null);
+    }, []);
+
+    const clearSuggestions = useCallback(() => {
+        setSuggestions([]);
     }, []);
 
     const injectMessage = useCallback((content: string, role: 'assistant' | 'user' = 'assistant') => {
@@ -253,9 +278,11 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
         isTyping,
         isLoading,
         error,
+        suggestions,
         sendMessage,
         clearMessages,
         clearError,
+        clearSuggestions,
         injectMessage,
     };
 

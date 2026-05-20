@@ -176,6 +176,8 @@ export interface ChatMessage {
     role: 'user' | 'assistant';
     timestamp: string;
     status?: MessageStatus;
+    type?: 'text' | 'carousel';
+    images?: string[];
 }
 
 /**
@@ -470,9 +472,11 @@ export interface ChatContextValue {
     isTyping: boolean;
     isLoading: boolean;
     error: string | null;
+    suggestions: string[];
     sendMessage: (content: string) => Promise<void>;
     clearMessages: () => void;
     clearError: () => void;
+    clearSuggestions: () => void;
     /** Inject a message directly into the chat history (e.g. initial greeting) */
     injectMessage: (content: string, role?: 'assistant' | 'user') => void;
 }

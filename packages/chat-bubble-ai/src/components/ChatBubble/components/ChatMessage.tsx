@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ChatMessage as ChatMessageType, AvatarConfig } from '../ChatBubble.types';
 import { Avatar } from './Avatar';
+import { ImageCarousel } from './ImageCarousel';
 
 
 interface ChatMessageProps {
@@ -17,6 +18,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     const { role, content, timestamp } = message;
 
     const isUser = role === 'user';
+    const isCarousel = message.type === 'carousel' && Array.isArray(message.images) && message.images.length > 0;
+    // Strip carousel/suggestions JSON from display while streaming (cleaned up on complete)
+    const displayContent = (!isCarousel && message.status !== 'sent')
+        ? content
+            .replace(/\{"type":"carousel","images":\[[\s\S]*?\]\}/, '')
+            .replace(/\{"type":"suggestions","items":\[[\s\S]*?\]\}/, '')
+            .trim()
+        : content;
 
     // Format timestamp
     const formatTime = (time: Date | string) => {
@@ -63,17 +72,22 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '0.25rem', // gap-1
+                    gap: '0.25rem',
                     maxWidth: '95%',
                     justifyContent: isUser ? 'flex-end' : 'flex-start',
                 }}
             >
+                {/* Avatar — top */}
+                <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
+                    <Avatar config={messageAvatar} />
+                </div>
+
                 <div
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.5rem', // gap-2
-                        paddingLeft: '0.25rem', // px-1
+                        gap: '0.5rem',
+                        paddingLeft: '0.25rem',
                         paddingRight: '0.25rem',
                         flexDirection: isUser ? 'row-reverse' : 'row',
                     }}
@@ -86,61 +100,83 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                     </span>
                 </div>
 
-                <div
-                    style={{
-                        position: 'relative',
-                        fontSize: '1rem',
-                        lineHeight: 1.625,
-                        boxShadow: isUser ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                        whiteSpace: 'pre-wrap',
-                        overflowWrap: 'break-word',
-                        borderRadius: '1rem', // rounded-2xl
-                        borderBottomRightRadius: isUser ? '0.125rem' : '1rem',
-                        borderBottomLeftRadius: isUser ? '1rem' : '0.125rem',
-                        fontWeight: isUser ? 'var(--message-user-font-weight, 400)' : 'var(--message-assistant-font-weight, 400)',
-                        color: isUser
-                            ? 'var(--message-user-text, #ffffff)'
-                            : 'var(--message-assistant-text, inherit)',
-                    }}
-                >
-                    {/* Background Layer */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            inset: 0,
-                            width: '100%',
-                            height: '100%',
-                            borderRadius: 'inherit',
-                            opacity: isUser ? 'var(--message-user-opacity, 1)' : 'var(--message-assistant-opacity, 1)',
-                            background: isUser
-                                ? 'var(--message-user-bg, var(--color-primary, #137fec))'
-                                : 'var(--message-assistant-bg, #f1f5f9)',
-                            zIndex: 0,
-                        }}
-                    />
-
-                    {/* Content Layer */}
+                {isCarousel ? (
+                    <>
+                        {content && (
+                            <div
+                                style={{
+                                    position: 'relative',
+                                    fontSize: '1rem',
+                                    lineHeight: 1.625,
+                                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                                    whiteSpace: 'pre-wrap',
+                                    overflowWrap: 'break-word',
+                                    borderRadius: '1rem',
+                                    borderBottomLeftRadius: '0.125rem',
+                                    fontWeight: 'var(--message-assistant-font-weight, 400)',
+                                    color: 'var(--message-assistant-text, inherit)',
+                                    marginBottom: '0.25rem',
+                                }}
+                            >
+                                <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', borderRadius: 'inherit', opacity: 'var(--message-assistant-opacity, 1)', background: 'var(--message-assistant-bg, #f1f5f9)', zIndex: 0 }} />
+                                <div style={{ position: 'relative', zIndex: 10, padding: '0.5rem' }}>
+                                    <div dangerouslySetInnerHTML={{ __html: content }} />
+                                </div>
+                            </div>
+                        )}
+                        <ImageCarousel images={message.images!} />
+                    </>
+                ) : (
                     <div
                         style={{
                             position: 'relative',
-                            zIndex: 10,
-                            padding: '0.5rem',
-                            textAlign: isUser ? 'right' : 'left',
+                            fontSize: '1rem',
+                            lineHeight: 1.625,
+                            boxShadow: isUser ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'break-word',
+                            borderRadius: '1rem',
+                            borderBottomRightRadius: isUser ? '0.125rem' : '1rem',
+                            borderBottomLeftRadius: isUser ? '1rem' : '0.125rem',
+                            fontWeight: isUser ? 'var(--message-user-font-weight, 400)' : 'var(--message-assistant-font-weight, 400)',
+                            color: isUser
+                                ? 'var(--message-user-text, #ffffff)'
+                                : 'var(--message-assistant-text, inherit)',
                         }}
                     >
-                        {role === 'assistant' ? (
-                            <div dangerouslySetInnerHTML={{ __html: content }} />
-                        ) : (
-                            content
-                        )}
+                        {/* Background Layer */}
+                        <div
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                width: '100%',
+                                height: '100%',
+                                borderRadius: 'inherit',
+                                opacity: isUser ? 'var(--message-user-opacity, 1)' : 'var(--message-assistant-opacity, 1)',
+                                background: isUser
+                                    ? 'var(--message-user-bg, var(--color-primary, #137fec))'
+                                    : 'var(--message-assistant-bg, #f1f5f9)',
+                                zIndex: 0,
+                            }}
+                        />
+
+                        {/* Content Layer */}
+                        <div
+                            style={{
+                                position: 'relative',
+                                zIndex: 10,
+                                padding: '0.5rem',
+                                textAlign: isUser ? 'right' : 'left',
+                            }}
+                        >
+                            {role === 'assistant' ? (
+                                <div dangerouslySetInnerHTML={{ __html: displayContent }} />
+                            ) : (
+                                displayContent
+                            )}
+                        </div>
                     </div>
-
-
-                </div>
-                {/* Avatars */}
-                <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
-                    <Avatar config={messageAvatar} />
-                </div>
+                )}
             </div>
 
         </div>

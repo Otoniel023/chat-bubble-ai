@@ -3,12 +3,14 @@
  * Tests the ChatBubble component imported from the local workspace package.
  */
 
+import { useState } from 'react';
 import {
     ChatBubbleProvider,
     FloatingChatWidget,
     useChatBubble,
 } from 'chat-bubble-ai';
 import type { ChatBubbleConfig } from 'chat-bubble-ai';
+import MLDashboard from './MLDashboard';
 
 // Wrapper that shows chat state for debugging
 function DebugPanel() {
@@ -112,73 +114,111 @@ const chatConfig: ChatBubbleConfig = {
             }
         }
     },
-    url: "https://ai.grupovdt.com/api/agents/stream/domi",
+    url: "http://localhost:5101/api/agents/stream/domi",
     token: "4XPNFnS4Ew4k8dkDhw+6sqMAPBkaT5KjZcUt4NqGsz0=",
     initialMessage: "¡Hola, bienvenido! <br><br> Soy el agente virtual de DominicanaTours.<br><br>Estoy encantado de ayudarte con información sobre tus reservas y cualquier inquietud que tengas.",
 };
 
+type Tab = 'chat' | 'ml';
+
 function App() {
+    const [activeTab, setActiveTab] = useState<Tab>('chat');
+
+    const tabs: { id: Tab; label: string; icon: string }[] = [
+        { id: 'chat',  label: 'Chat Sandbox', icon: '💬' },
+        { id: 'ml',    label: 'ML Dashboard', icon: '🤖' },
+    ];
+
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans selection:bg-indigo-500/30">
-            {/* Dummy Landing Page Content */}
-            <div className="container mx-auto px-6 py-12">
-                <header className="flex justify-between items-center mb-20">
-                    <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
-                        ChatBubble AI
-                    </div>
-                    <nav className="hidden md:flex gap-6 text-sm font-medium text-slate-500 dark:text-slate-400">
-                        <a href="#" className="hover:text-indigo-500 transition-colors">Features</a>
-                        <a href="#" className="hover:text-indigo-500 transition-colors">Pricing</a>
-                        <a href="#" className="hover:text-indigo-500 transition-colors">Documentation</a>
-                    </nav>
-                </header>
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
 
-                <main className="max-w-4xl">
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8">
-                        The <span className="text-indigo-500">smartest</span> way to chat with your users.
-                    </h1>
-                    <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl leading-relaxed">
-                        Add a powerful, customizable AI chat widget to your React application in minutes.
-                        Give it a spin by clicking the button in the bottom right corner! 👇
-                    </p>
-                    <div className="flex gap-4">
-                        <button className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-semibold transition-all hover:scale-105 shadow-lg shadow-indigo-500/25">
-                            Get Started
+            {/* Tab bar */}
+            <div className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700">
+                <div className="container mx-auto px-6 flex gap-1 py-2">
+                    {tabs.map((t) => (
+                        <button
+                            key={t.id}
+                            onClick={() => setActiveTab(t.id)}
+                            className={`
+                                flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                                ${activeTab === t.id
+                                    ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                }
+                            `}
+                        >
+                            <span>{t.icon}</span>
+                            {t.label}
                         </button>
-                        <button className="px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-full font-semibold transition-all">
-                            View Documentation
-                        </button>
-                    </div>
-
-                    <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {[
-                            { title: 'Easy Integration', icon: '⚡' },
-                            { title: 'Fully Customizable', icon: '🎨' },
-                            { title: 'AI Powered', icon: '🤖' },
-                        ].map((feature) => (
-                            <div key={feature.title} className="p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="text-4xl mb-4">{feature.icon}</div>
-                                <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </main>
+                    ))}
+                </div>
             </div>
 
-            {/* Chat Bubble Implementation */}
-            <ChatBubbleProvider
-                agentId="playground-test"
-                apiErrorMessage={chatConfig.feedback?.apiError}
-                initialMessage={chatConfig.initialMessage}
-            >
-                <FloatingChatWidget config={chatConfig} defaultOpen={false} />
-                <DebugPanel />
-            </ChatBubbleProvider>
+            {/* Tab: Chat (contenido original) */}
+            {activeTab === 'chat' && (
+                <div className="container mx-auto px-6 py-12 selection:bg-indigo-500/30">
+                    <header className="flex justify-between items-center mb-20">
+                        <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+                            ChatBubble AI
+                        </div>
+                        <nav className="hidden md:flex gap-6 text-sm font-medium text-slate-500 dark:text-slate-400">
+                            <a href="#" className="hover:text-indigo-500 transition-colors">Features</a>
+                            <a href="#" className="hover:text-indigo-500 transition-colors">Pricing</a>
+                            <a href="#" className="hover:text-indigo-500 transition-colors">Documentation</a>
+                        </nav>
+                    </header>
+
+                    <main className="max-w-4xl">
+                        <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8">
+                            The <span className="text-indigo-500">smartest</span> way to chat with your users.
+                        </h1>
+                        <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl leading-relaxed">
+                            Add a powerful, customizable AI chat widget to your React application in minutes.
+                            Give it a spin by clicking the button in the bottom right corner! 👇
+                        </p>
+                        <div className="flex gap-4">
+                            <button className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-semibold transition-all hover:scale-105 shadow-lg shadow-indigo-500/25">
+                                Get Started
+                            </button>
+                            <button className="px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-full font-semibold transition-all">
+                                View Documentation
+                            </button>
+                        </div>
+
+                        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {[
+                                { title: 'Easy Integration', icon: '⚡' },
+                                { title: 'Fully Customizable', icon: '🎨' },
+                                { title: 'AI Powered', icon: '🤖' },
+                            ].map((feature) => (
+                                <div key={feature.title} className="p-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="text-4xl mb-4">{feature.icon}</div>
+                                    <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </main>
+
+                    {/* Chat Bubble */}
+                    <ChatBubbleProvider
+                        agentId="playground-test"
+                        apiErrorMessage={chatConfig.feedback?.apiError}
+                        initialMessage={chatConfig.initialMessage}
+                    >
+                        <FloatingChatWidget config={chatConfig} defaultOpen={false} />
+                        <DebugPanel />
+                    </ChatBubbleProvider>
+                </div>
+            )}
+
+            {/* Tab: ML Dashboard */}
+            {activeTab === 'ml' && <MLDashboard />}
         </div>
     );
 }
 
 export default App;
+

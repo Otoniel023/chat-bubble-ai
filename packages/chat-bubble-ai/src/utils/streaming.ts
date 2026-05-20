@@ -5,7 +5,15 @@
 import type { StreamCallbacks } from '../types/agent.types';
 
 /**
- * Process SSE stream from fetch response
+ * Process SSE stream from fetch response.
+ *
+ * Handles named events (event: + data:) and default message events (data: only).
+ * Supported named events:
+ *   - event: thinking  → ignored (future use)
+ *   - event: carousel  → calls callbacks.onCarousel with parsed image array
+ * Special data values:
+ *   - [DONE]      → calls onComplete and stops
+ *   - [CANCELLED] → calls onComplete and stops
  */
 export async function processSSEStream(
   response: Response,
@@ -17,7 +25,61 @@ export async function processSSEStream(
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
-  let buffer = '';
+  let rawBuffer = '';
+
+  // Current SSE event fields (reset on empty line)
+  let currentEvent = '';
+  let currentData = '';
+
+  /**
+   * Dispatch the buffered SSE event. Returns true if the stream should stop.
+   */
+  const dispatch = (): boolean => {
+    if (!currentData) {
+      currentEvent = '';
+      return false;
+    }
+
+    if (currentEvent === 'carousel') {
+      try {
+        const parsed = JSON.parse(currentData) as { type?: string; images?: unknown };
+        if (Array.isArray(parsed.images) && parsed.images.length > 0) {
+          callbacks.onCarousel?.(parsed.images as string[]);
+        }
+      } catch { /* malformed JSON — ignore */ }
+    } else if (currentEvent === 'suggestions') {
+      try {
+        const parsed = JSON.parse(currentData) as { type?: string; items?: unknown };
+        if (Array.isArray(parsed.items) && parsed.items.length > 0) {
+          callbacks.onSuggestions?.(parsed.items as string[]);
+        }
+      } catch { /* malformed JSON — ignore */ }
+    } else if (currentEvent !== 'thinking') {
+      // Default message event
+      if (currentData === '[DONE]' || currentData === '[CANCELLED]') {
+        callbacks.onComplete();
+        currentEvent = '';
+        currentData = '';
+        return true;
+      }
+
+      if (currentData.startsWith('{"error":')) {
+        try {
+          const errorData = JSON.parse(currentData) as { error?: string };
+          callbacks.onError(new Error(errorData.error || 'Unknown error'));
+          currentEvent = '';
+          currentData = '';
+          return true;
+        } catch { /* not valid JSON — treat as regular chunk */ }
+      }
+
+      callbacks.onChunk(currentData);
+    }
+
+    currentEvent = '';
+    currentData = '';
+    return false;
+  };
 
   try {
     while (true) {
@@ -28,43 +90,21 @@ export async function processSSEStream(
         break;
       }
 
-      // Decode chunk and add to buffer
-      buffer += decoder.decode(value, { stream: true });
+      rawBuffer += decoder.decode(value, { stream: true });
 
-      // Process complete lines from buffer
-      const lines = buffer.split('\n');
-
-      // Keep the last incomplete line in the buffer
-      buffer = lines.pop() || '';
+      const lines = rawBuffer.split('\n');
+      rawBuffer = lines.pop() ?? '';
 
       for (const line of lines) {
-        // Skip empty lines
-        if (!line.trim()) continue;
-
-        // Parse SSE format: "data: <content>"
-        if (line.startsWith('data: ')) {
-          const data = line.substring(6); // Remove "data: " prefix
-
-          // Check for stream completion signal
-          if (data === '[DONE]') {
-            callbacks.onComplete();
-            return;
-          }
-
-          // Check for error message from server
-          if (data.startsWith('{"error":')) {
-            try {
-              const errorData = JSON.parse(data);
-              callbacks.onError(new Error(errorData.error));
-              return;
-            } catch {
-              // If parse fails, treat as normal chunk
-            }
-          }
-
-          // Send chunk to callback
-          callbacks.onChunk(data);
+        if (line === '' || line === '\r') {
+          // Empty line = end of SSE event block
+          if (dispatch()) return;
+        } else if (line.startsWith('event: ')) {
+          currentEvent = line.substring(7).trim();
+        } else if (line.startsWith('data: ')) {
+          currentData = line.substring(6);
         }
+        // Other fields (id:, retry:, comments) are intentionally ignored
       }
     }
   } catch (error) {

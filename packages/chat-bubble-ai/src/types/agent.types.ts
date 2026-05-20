@@ -45,4 +45,6 @@ export interface StreamCallbacks {
   onChunk: StreamChunkCallback;
   onComplete: StreamCompleteCallback;
   onError: StreamErrorCallback;
+  onCarousel?: (images: string[]) => void;
+  onSuggestions?: (items: string[]) => void;
 }
