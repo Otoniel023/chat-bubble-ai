@@ -246,6 +246,13 @@ export class ChatBubbleInstance {
         this.suggestionsRenderer.updateSuggestions(suggestions);
       }
     });
+
+    // Tool call label changed — update typing indicator text
+    this.stateManager.on('toolcall:changed', (label: string) => {
+      if (this.messageListRenderer) {
+        this.messageListRenderer.updateToolCallLabel(label);
+      }
+    });
   }
 
   /**
@@ -331,6 +338,7 @@ export class ChatBubbleInstance {
 
           msgUpdate.content = cleanContent;
           this.stateManager.updateMessage(assistantMessageId, msgUpdate);
+          this.stateManager.setToolCallLabel('');
           this.stateManager.setTyping(false);
           this.stateManager.setLoading(false);
 
@@ -340,6 +348,9 @@ export class ChatBubbleInstance {
               this.messageListRenderer.scrollToMessage(assistantMessageId);
             }
           }, 80);
+        },
+        onToolCall: (label: string) => {
+          this.stateManager.setToolCallLabel(label);
         },
         onError: (err: Error) => {
           // Check if we should show error as message
@@ -370,6 +381,7 @@ export class ChatBubbleInstance {
             this.stateManager.setError(err.message || 'Failed to get response');
           }
 
+          this.stateManager.setToolCallLabel('');
           this.stateManager.setTyping(false);
           this.stateManager.setLoading(false);
         },

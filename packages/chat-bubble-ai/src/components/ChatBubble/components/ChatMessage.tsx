@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import type { ChatMessage as ChatMessageType, AvatarConfig } from '../ChatBubble.types';
 import { Avatar } from './Avatar';
 import { ImageCarousel } from './ImageCarousel';
 
+const MSG_CSS = `
+  @keyframes cb-msg-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes cb-overlay-in {
+    from { opacity: 0; transform: translateY(4px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+`;
 
 interface ChatMessageProps {
     message: ChatMessageType;
@@ -10,177 +20,250 @@ interface ChatMessageProps {
     className?: string;
 }
 
+const HOVER_ACTIONS = [
+    { icon: '👍', label: 'Me gusta' },
+    { icon: '❤️', label: 'Me encanta' },
+    { icon: '📋', label: 'Copiar' },
+];
+
 export const ChatMessage: React.FC<ChatMessageProps> = ({
     message,
     defaultAvatar,
     className = '',
 }) => {
-    const { role, content, timestamp } = message;
-
+    const { role, content, timestamp, status } = message;
     const isUser = role === 'user';
     const isCarousel = message.type === 'carousel' && Array.isArray(message.images) && message.images.length > 0;
-    // Strip carousel/suggestions JSON from display while streaming (cleaned up on complete)
-    const displayContent = (!isCarousel && message.status !== 'sent')
+    const [hovered, setHovered] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const displayContent = (!isCarousel && status !== 'sent')
         ? content
             .replace(/\{"type":"carousel","images":\[[\s\S]*?\]\}/, '')
             .replace(/\{"type":"suggestions","items":\[[\s\S]*?\]\}/, '')
             .trim()
         : content;
 
-    // Format timestamp
     const formatTime = (time: Date | string) => {
         const date = typeof time === 'string' ? new Date(time) : time;
-        return date.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true,
-        });
+        return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
     };
 
-    // Default avatars if not provided
-   
-    const messageAvatar: AvatarConfig =  {
+    const handleAction = useCallback((icon: string) => {
+        if (icon === '📋') {
+            const plain = displayContent.replace(/<[^>]+>/g, '');
+            navigator.clipboard?.writeText(plain).catch(() => {});
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        }
+    }, [displayContent]);
+
+    const assistantAvatar: AvatarConfig = {
         ...defaultAvatar,
-        type: isUser ? 'text' : 'image',
-        text: isUser ? 'U' : undefined,
-        src: isUser ? undefined : (defaultAvatar?.src || 'https://photos.dominicanatours.com/imagenes/domi.webp'),
-        // Note: Avatar component needs to be checked if it supports style overrides via config,
-        // or if we rely on its internal handling. The config interface supports backgroundColor string.
-        // We'll leave these strings as they might be used by Avatar logic if it supports arbitrary class/style injection,
-        // OR we should change them to hex codes if Avatar expects colors.
-        // Looking at ChatBubble.types, backgroundColor is string. Avatar implementation likely uses it as class or style?
-        // Let's assume Avatar handles it, or we might need to refactor Avatar too.
-        // For now, keeping these as defaults but they look like Tailwind classes.
-        // We should probably change them to hex if we want true independence.
-        backgroundColor: isUser ? '#e2e8f0' : 'rgba(19, 127, 236, 0.1)', // slate-200 / primary/10
-        textColor: isUser ? '#334155' : '#000000', // slate-700 / black
+        type: defaultAvatar?.type ?? 'image',
+        src: defaultAvatar?.src ?? 'https://photos.dominicanatours.com/imagenes/domi.webp',
+        backgroundColor: defaultAvatar?.backgroundColor ?? 'rgba(19, 127, 236, 0.1)',
+        textColor: defaultAvatar?.textColor ?? '#000000',
         size: 'sm',
     };
 
-    const label = isUser ? 'You' : 'Assistant';
+    const bubbleRadius = isUser
+        ? '1.25rem 1.25rem 0.25rem 1.25rem'
+        : '0 1.25rem 1.25rem 1.25rem';
+
+    const statusMark = isUser
+        ? status === 'sending'
+            ? <span style={{ fontSize: '0.625rem', opacity: 0.5, letterSpacing: '-1px' }}>●●●</span>
+            : status === 'error'
+            ? <span style={{ fontSize: '0.625rem', color: '#ef4444' }}>⚠</span>
+            : <span style={{ fontSize: '0.625rem', opacity: 0.5 }}>✓</span>
+        : null;
+
+    // Hover action overlay — glass morphism pill
+    const hoverOverlay = (
+        <div style={{
+            position: 'absolute',
+            top: '-2.25rem',
+            // Align to the bubble origin side
+            ...(isUser ? { right: 0 } : { left: 0 }),
+            display: 'flex',
+            gap: '0.125rem',
+            padding: '0.25rem 0.5rem',
+            borderRadius: '999px',
+            background: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.6)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+            opacity: hovered ? 1 : 0,
+            pointerEvents: hovered ? 'auto' : 'none',
+            animation: hovered ? 'cb-overlay-in 0.18s ease-out' : 'none',
+            transition: 'opacity 0.15s ease',
+            zIndex: 20,
+            whiteSpace: 'nowrap',
+        }}>
+            {HOVER_ACTIONS.map(({ icon, label }) => (
+                <button
+                    key={icon}
+                    title={icon === '📋' && copied ? '¡Copiado!' : label}
+                    onClick={() => handleAction(icon)}
+                    style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '1rem',
+                        lineHeight: 1,
+                        padding: '0.25rem',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'transform 0.12s ease, background 0.12s ease',
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.transform = 'scale(1.25)';
+                        e.currentTarget.style.background = 'rgba(0,0,0,0.06)';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.background = 'transparent';
+                    }}
+                >
+                    {icon === '📋' && copied ? '✓' : icon}
+                </button>
+            ))}
+        </div>
+    );
+
+    const bubble = isCarousel ? (
+        <>
+            {content && (
+                <div style={{
+                    position: 'relative',
+                    borderRadius: bubbleRadius,
+                    padding: '0.75rem 1rem',
+                    marginBottom: '0.5rem',
+                    fontSize: '0.9375rem',
+                    lineHeight: 1.7,
+                    overflowWrap: 'break-word',
+                    wordBreak: 'break-word',
+                    color: 'var(--message-assistant-text, inherit)',
+                    backdropFilter: 'blur(14px)',
+                    WebkitBackdropFilter: 'blur(14px)',
+                    border: '1px solid rgba(255, 255, 255, 0.4)',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                }}>
+                    <div style={{
+                        position: 'absolute', inset: 0, borderRadius: 'inherit',
+                        opacity: 'var(--message-assistant-opacity, 1)',
+                        background: 'var(--message-assistant-bg, #f1f5f9)',
+                        zIndex: 0,
+                    }} />
+                    <div style={{ position: 'relative', zIndex: 1 }}
+                        dangerouslySetInnerHTML={{ __html: content }} />
+                </div>
+            )}
+            <ImageCarousel images={message.images!} />
+        </>
+    ) : (
+        <div style={{
+            position: 'relative',
+            borderRadius: bubbleRadius,
+            padding: isUser ? '0.75rem 1.125rem' : '0.75rem 1rem',
+            fontSize: '0.9375rem',
+            lineHeight: 1.7,
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+            fontWeight: isUser
+                ? 'var(--message-user-font-weight, 400)'
+                : 'var(--message-assistant-font-weight, 400)',
+            color: isUser
+                ? 'var(--message-user-text, #ffffff)'
+                : 'var(--message-assistant-text, inherit)',
+            boxShadow: isUser
+                ? '0 2px 10px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.08)'
+                : '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05)',
+            backdropFilter: isUser ? undefined : 'blur(14px)',
+            WebkitBackdropFilter: isUser ? undefined : 'blur(14px)',
+            border: isUser ? undefined : '1px solid rgba(255, 255, 255, 0.4)',
+        }}>
+            {/* Background layer — supports opacity CSS var */}
+            <div style={{
+                position: 'absolute', inset: 0, borderRadius: 'inherit',
+                opacity: isUser
+                    ? 'var(--message-user-opacity, 1)'
+                    : 'var(--message-assistant-opacity, 1)',
+                background: isUser
+                    ? 'var(--message-user-bg, var(--color-primary, #137fec))'
+                    : 'var(--message-assistant-bg, #f1f5f9)',
+                zIndex: 0,
+            }} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+                {role === 'assistant'
+                    ? <div dangerouslySetInnerHTML={{ __html: displayContent }} />
+                    : displayContent
+                }
+            </div>
+        </div>
+    );
 
     return (
         <div
             className={className}
             style={{
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem', // gap-3
-                alignItems: isUser ? 'flex-end' : 'flex-start',
+                flexDirection: isUser ? 'row-reverse' : 'row',
+                alignItems: 'flex-end',
+                gap: '0.625rem',
+                animation: 'cb-msg-in 0.22s ease-out',
             }}
         >
+            <style>{MSG_CSS}</style>
 
+            {/* Avatar — only for assistant */}
+            {!isUser && (
+                <div style={{ flexShrink: 0, alignSelf: 'flex-end', marginBottom: '1.25rem' }}>
+                    <Avatar config={assistantAvatar} />
+                </div>
+            )}
+
+            {/* Bubble + hover overlay + meta */}
             <div
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '0.25rem',
-                    maxWidth: '95%',
-                    justifyContent: isUser ? 'flex-end' : 'flex-start',
+                    gap: '0.2rem',
+                    alignItems: isUser ? 'flex-end' : 'flex-start',
+                    maxWidth: isUser ? '76%' : '85%',
+                    // Only show pointer when sent (not streaming)
+                    position: 'relative',
                 }}
+                onMouseEnter={() => status === 'sent' && setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
             >
-                {/* Avatar — top */}
-                <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
-                    <Avatar config={messageAvatar} />
-                </div>
+                {/* Hover action overlay */}
+                {status === 'sent' && hoverOverlay}
 
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        paddingLeft: '0.25rem',
-                        paddingRight: '0.25rem',
-                        flexDirection: isUser ? 'row-reverse' : 'row',
-                    }}
-                >
-                    <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--color-text-secondary, #64748b)' }}>
-                        {label}
-                    </span>
-                    <span style={{ fontSize: '0.625rem', color: 'var(--color-text-tertiary, #94a3b8)' }}>
+                {bubble}
+
+                {/* Timestamp + status */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    paddingLeft: isUser ? 0 : '0.375rem',
+                    paddingRight: isUser ? '0.375rem' : 0,
+                }}>
+                    <span style={{
+                        fontSize: '0.6875rem',
+                        color: 'var(--color-text-tertiary, #94a3b8)',
+                        opacity: 0.75,
+                    }}>
                         {formatTime(timestamp)}
                     </span>
+                    {statusMark}
                 </div>
-
-                {isCarousel ? (
-                    <>
-                        {content && (
-                            <div
-                                style={{
-                                    position: 'relative',
-                                    fontSize: '1rem',
-                                    lineHeight: 1.625,
-                                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                                    whiteSpace: 'pre-wrap',
-                                    overflowWrap: 'break-word',
-                                    borderRadius: '1rem',
-                                    borderBottomLeftRadius: '0.125rem',
-                                    fontWeight: 'var(--message-assistant-font-weight, 400)',
-                                    color: 'var(--message-assistant-text, inherit)',
-                                    marginBottom: '0.25rem',
-                                }}
-                            >
-                                <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', borderRadius: 'inherit', opacity: 'var(--message-assistant-opacity, 1)', background: 'var(--message-assistant-bg, #f1f5f9)', zIndex: 0 }} />
-                                <div style={{ position: 'relative', zIndex: 10, padding: '0.5rem' }}>
-                                    <div dangerouslySetInnerHTML={{ __html: content }} />
-                                </div>
-                            </div>
-                        )}
-                        <ImageCarousel images={message.images!} />
-                    </>
-                ) : (
-                    <div
-                        style={{
-                            position: 'relative',
-                            fontSize: '1rem',
-                            lineHeight: 1.625,
-                            boxShadow: isUser ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                            whiteSpace: 'pre-wrap',
-                            overflowWrap: 'break-word',
-                            borderRadius: '1rem',
-                            borderBottomRightRadius: isUser ? '0.125rem' : '1rem',
-                            borderBottomLeftRadius: isUser ? '1rem' : '0.125rem',
-                            fontWeight: isUser ? 'var(--message-user-font-weight, 400)' : 'var(--message-assistant-font-weight, 400)',
-                            color: isUser
-                                ? 'var(--message-user-text, #ffffff)'
-                                : 'var(--message-assistant-text, inherit)',
-                        }}
-                    >
-                        {/* Background Layer */}
-                        <div
-                            style={{
-                                position: 'absolute',
-                                inset: 0,
-                                width: '100%',
-                                height: '100%',
-                                borderRadius: 'inherit',
-                                opacity: isUser ? 'var(--message-user-opacity, 1)' : 'var(--message-assistant-opacity, 1)',
-                                background: isUser
-                                    ? 'var(--message-user-bg, var(--color-primary, #137fec))'
-                                    : 'var(--message-assistant-bg, #f1f5f9)',
-                                zIndex: 0,
-                            }}
-                        />
-
-                        {/* Content Layer */}
-                        <div
-                            style={{
-                                position: 'relative',
-                                zIndex: 10,
-                                padding: '0.5rem',
-                                textAlign: isUser ? 'right' : 'left',
-                            }}
-                        >
-                            {role === 'assistant' ? (
-                                <div dangerouslySetInnerHTML={{ __html: displayContent }} />
-                            ) : (
-                                displayContent
-                            )}
-                        </div>
-                    </div>
-                )}
             </div>
-
         </div>
     );
 };

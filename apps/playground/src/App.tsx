@@ -33,41 +33,58 @@ function DebugPanel() {
     );
 }
 
-// Chat configuration
+// Paleta caribeña
+// Primary   #FB923C  orange-400
+// Darker    #EA580C  orange-600
+// Lighter   #FDBA74  orange-300
+// Contrast  #3B82F6  blue-500
+// Soft bg   #FFEDD5  orange-100
+
 const chatConfig: ChatBubbleConfig = {
     darkMode: false,
     maxWidth: '900px',
     height: '100vh',
     theme: {
         cssVariables: {
-            // Primary colors
-            colorPrimary: '#ff8800',
-            colorPrimaryHover: '#e67a00',
-
-            // Fonts
+            colorPrimary:           '#FB923C',
+            colorPrimaryHover:      '#EA580C',
+            colorBackgroundLight:   '#FFEDD5',
+            colorSurfaceLight:      'rgba(255, 255, 255, 0.15)',
+            colorBorderLight:       'rgba(255, 255, 255, 0.2)',
             fontSans: "'Inter', sans-serif",
         },
     },
     style: {
-        // Message styling
-        '--message-user-bg': '#fb923c',
-        '--message-user-text': '#ffffff',
-        '--message-assistant-bg': '#ffffff',
-        '--message-assistant-text': '#000000',
-
-        // Chat background
-        '--chat-background': 'linear-gradient(135deg, #d0eefe 0%, #7bc5e8 100%)',
+        '--color-text-primary':      '#1e293b',
+        '--color-text-secondary':    '#475569',
+        '--color-text-tertiary':     '#94a3b8',
+        '--message-user-bg':         '#FB923C',
+        '--message-user-text':       '#ffffff',
+        '--message-assistant-bg':    'rgba(255, 255, 255, 0.72)',
+        '--message-assistant-text':  '#1e293b',
+        // Beach image de fondo — cubre todo el widget incluido el header
+        '--chat-background':         'url(/beach.png)',
     } as React.CSSProperties,
     header: {
         avatar: {
             type: 'image',
-            src: 'https://fotos.grupovdt.com/tropitours/imagenes/tropi.webp',
-            backgroundColor: '#ffedd5', // bg-orange-100
-            textColor: '#ea580c', // text-orange-600
+            src: 'https://photos.dominicanatours.com/imagenes/domi.webp',
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            textColor: '#ffffff',
         },
         title: 'DominicanaTours',
         subtitle: 'Nº1 en Viajes al Caribe',
         actions: [],
+        // Header transparente — la playa se ve detrás
+        style: {
+            backgroundColor:    'rgba(0, 0, 0, 0.18)',
+            backdropFilter:     'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            borderBottom:       '1px solid rgba(255, 255, 255, 0.15)',
+            // Texto blanco solo dentro del header
+            '--color-text-primary':   '#ffffff',
+            '--color-text-secondary': 'rgba(255, 255, 255, 0.8)',
+        } as React.CSSProperties,
     },
     input: {
         placeholder: 'Escribe tu consulta aquí...',
@@ -76,19 +93,19 @@ const chatConfig: ChatBubbleConfig = {
         showVoice: false,
         showSendButton: true,
         disclaimer: 'Asistente Virtual de Dominicana Tours',
-        sendButtonColor: '#f1984d',
-        sendButtonDisabledColor: '#cbd5e1',
+        sendButtonColor: '#3B82F6',          // contraste azul
+        sendButtonDisabledColor: '#FDBA74',  // naranja claro deshabilitado
     },
     launcher: {
         imageUrl: 'https://photos.dominicanatours.com/imagenes/domi.webp',
         animationImages: [
-            "https://photos.dominicanatours.com/imagenes/domi-1.webp",
-            "https://photos.dominicanatours.com/imagenes/domi.webp"
+            'https://photos.dominicanatours.com/imagenes/domi-1.webp',
+            'https://photos.dominicanatours.com/imagenes/domi.webp',
         ],
         animationInterval: 400,
-        color: '#ff8800',
+        color: '#FB923C',
         mobilePill: {
-            color: 'linear-gradient(135deg, #ff8800 0%, #ed5c00 100%)',
+            color: 'linear-gradient(135deg, #FB923C 0%, #EA580C 100%)',
             bottom: '1dvh',
             breakpoint: 768,
         },
@@ -98,25 +115,30 @@ const chatConfig: ChatBubbleConfig = {
     },
     notification: {
         title: '¡Hola! Soy Domi, tu asistente virtual en DominicanaTours.',
-        message: '¡Estoy aquí para cualquier duda que puedas tener! lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quod. lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quod. lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quod.',
+        message: '¡Estoy aquí para cualquier duda que puedas tener! lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quod.',
         interval: 10000,
         duration: 10000,
         dot: {
-            show: true,              // ocultar con false
-            color: '#ff8800',        // color del dot sólido
-            ringColor: '#f99',    // color del anillo ripple (default = color)
-            size: 10,                // diámetro en px
-            animationDuration: 1.2,  // segundos por ciclo
-            animationScale: 2.2,     // cuánto crece el anillo
-            position: {
-                top: '4%',          // offset desde arriba del botón
-                right: '92%',        // offset desde la derecha
-            }
-        }
+            show: true,
+            color: '#FB923C',
+            ringColor: '#FDBA74',
+            size: 10,
+            animationDuration: 1.2,
+            animationScale: 2.2,
+            position: { top: '4%', right: '92%' },
+        },
     },
-    url: "http://localhost:5101/api/agents/stream/domi",
-    token: "4XPNFnS4Ew4k8dkDhw+6sqMAPBkaT5KjZcUt4NqGsz0=",
-    initialMessage: "¡Hola, bienvenido! <br><br> Soy el agente virtual de DominicanaTours.<br><br>Estoy encantado de ayudarte con información sobre tus reservas y cualquier inquietud que tengas.",
+    url: 'https://ai.grupovdt.com/api/agents/stream/domi-v2',
+    token: '4XPNFnS4Ew4k8dkDhw+6sqMAPBkaT5KjZcUt4NqGsz0=',
+    initialMessage: '¡Hola, bienvenido! <br><br> Soy el agente virtual de DominicanaTours.<br><br>Estoy encantado de ayudarte con información sobre tus reservas y cualquier inquietud que tengas.',
+    animatedBackground: {
+        enabled: true,
+        waves: true,
+        particles: true,
+        waveColor:     'rgba(255, 255, 255, 0.25)',
+        particleColor: 'rgba(255, 255, 255, 0.55)',
+    },
+    themeToggle: true,
 };
 
 type Tab = 'chat' | 'ml';

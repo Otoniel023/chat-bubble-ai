@@ -32,6 +32,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [toolCallLabel, setToolCallLabel] = useState('');
     const abortControllerRef = useRef<{ abort: () => void } | null>(null);
     const initialMessageInjected = useRef(false);
 
@@ -68,6 +69,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
         onError: (err: Error) => void,
         onCarousel?: (images: string[]) => void,
         onSuggestions?: (items: string[]) => void,
+        onToolCall?: (label: string) => void,
     ): Promise<void> => {
         const streamCtrl = createStreamController();
         abortControllerRef.current = streamCtrl;
@@ -75,7 +77,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
         try {
             await agentService.sendMessageStream(
                 message,
-                { onChunk, onComplete, onError, onCarousel, onSuggestions },
+                { onChunk, onComplete, onError, onCarousel, onSuggestions, onToolCall },
                 streamCtrl.signal
             );
         } catch (err: unknown) {
@@ -93,6 +95,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
 
             setError(null);
             setSuggestions([]);
+            setToolCallLabel('');
 
             const userMessage: ChatMessage = {
                 id: `msg-${Date.now()}`,
@@ -177,6 +180,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
                                 return { ...m, ...messageUpdates, content: text };
                             })
                         );
+                        setToolCallLabel('');
                         setIsTyping(false);
                         setIsLoading(false);
                     },
@@ -206,6 +210,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
                         } else {
                             setError(err.message || 'Failed to get response');
                         }
+                        setToolCallLabel('');
                         setIsTyping(false);
                         setIsLoading(false);
                     },
@@ -222,6 +227,10 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
                     // onSuggestions — via SSE "event: suggestions"
                     (items: string[]) => {
                         setSuggestions(items);
+                    },
+                    // onToolCall — via SSE "event: toolcall"
+                    (label: string) => {
+                        setToolCallLabel(label);
                     },
                 );
             } catch (err) {
@@ -288,6 +297,7 @@ export const ChatBubbleProvider: React.FC<ChatBubbleProviderProps> = ({
         isLoading,
         error,
         suggestions,
+        toolCallLabel,
         sendMessage,
         clearMessages,
         clearError,

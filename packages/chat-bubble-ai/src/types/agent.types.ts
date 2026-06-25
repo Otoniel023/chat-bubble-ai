@@ -47,4 +47,5 @@ export interface StreamCallbacks {
   onError: StreamErrorCallback;
   onCarousel?: (images: string[]) => void;
   onSuggestions?: (items: string[]) => void;
+  onToolCall?: (label: string) => void;
 }

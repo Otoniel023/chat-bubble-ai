@@ -217,6 +217,7 @@ export interface TypingIndicatorConfig {
     show: boolean;
     avatar?: AvatarConfig;
     dotColor?: string;
+    toolCallLabel?: string;
 }
 
 /**
@@ -310,6 +311,19 @@ export interface NotificationConfig {
 }
 
 /**
+ * Animated background configuration — Caribbean waves + floating particles
+ */
+export interface AnimatedBackgroundConfig {
+    enabled?: boolean;
+    waves?: boolean;
+    particles?: boolean;
+    /** CSS color for wave SVGs. Defaults to a semi-transparent white or preset-matched color. */
+    waveColor?: string;
+    /** CSS color for floating particles. Defaults to a semi-transparent white or preset-matched color. */
+    particleColor?: string;
+}
+
+/**
  * Main chat bubble configuration
  */
 export interface ChatBubbleConfig {
@@ -333,6 +347,12 @@ export interface ChatBubbleConfig {
     url?: string;
     token?: string;
     style?: React.CSSProperties;
+    /** Animated SVG waves + floating particles in the chat background */
+    animatedBackground?: AnimatedBackgroundConfig;
+    /** Caribbean-themed color preset. Overrides theme colors when set. */
+    themePreset?: 'amanecer' | 'noche';
+    /** Show a ☀️/🌙 toggle button in the header to switch between presets at runtime */
+    themeToggle?: boolean;
 }
 
 /**
@@ -474,6 +494,7 @@ export interface ChatContextValue {
     isLoading: boolean;
     error: string | null;
     suggestions: string[];
+    toolCallLabel: string;
     sendMessage: (content: string) => Promise<void>;
     clearMessages: () => void;
     clearError: () => void;

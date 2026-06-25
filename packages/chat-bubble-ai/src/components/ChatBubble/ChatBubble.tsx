@@ -4,7 +4,7 @@
  */
 
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type {
     ChatBubbleConfig,
     ChatTheme,
@@ -18,6 +18,47 @@ import { ChatInput } from './components/ChatInput';
 import { TypingIndicator } from './components/TypingIndicator';
 import { DateSeparator } from './components/DateSeparator';
 import { SuggestedReplies } from './components/SuggestedReplies';
+import { AnimatedBackground } from './components/AnimatedBackground';
+
+// Caribbean-themed color presets — each overrides CSS variables
+const THEME_PRESETS: Record<string, Record<string, string>> = {
+    amanecer: {
+        '--color-primary':           '#f97316',
+        '--color-primary-hover':     '#ea6c10',
+        '--color-background-light':  '#fff7ed',
+        '--color-background-dark':   '#7c2d12',
+        '--color-surface-light':     '#fffbf5',
+        '--color-surface-dark':      '#9a3412',
+        '--color-border-light':      '#fed7aa',
+        '--color-border-dark':       '#c2521a',
+        '--color-text-primary':      '#7c2d12',
+        '--color-text-secondary':    '#c2410c',
+        '--color-text-tertiary':     '#ea580c',
+        '--message-assistant-bg':    '#fff7ed',
+        '--message-assistant-text':  '#7c2d12',
+        '--message-user-bg':         '#f97316',
+        '--message-user-text':       '#ffffff',
+        '--chat-background':         'linear-gradient(180deg, #fed7aa 0%, #fdba74 55%, #fb923c 100%)',
+    },
+    noche: {
+        '--color-primary':           '#00b4d8',
+        '--color-primary-hover':     '#0096c7',
+        '--color-background-light':  '#0d1b2a',
+        '--color-background-dark':   '#070e18',
+        '--color-surface-light':     '#1b2f45',
+        '--color-surface-dark':      '#0d1b2a',
+        '--color-border-light':      '#2d4a6e',
+        '--color-border-dark':       '#1a3050',
+        '--color-text-primary':      '#e2e8f0',
+        '--color-text-secondary':    '#7fb3d0',
+        '--color-text-tertiary':     '#4a8aad',
+        '--message-assistant-bg':    '#1b2f45',
+        '--message-assistant-text':  '#e2e8f0',
+        '--message-user-bg':         '#00b4d8',
+        '--message-user-text':       '#ffffff',
+        '--chat-background':         'linear-gradient(180deg, #0d1b2a 0%, #0a2540 55%, #051220 100%)',
+    },
+};
 
 interface ChatBubbleComponentProps {
     config: ChatBubbleConfig;
@@ -40,7 +81,29 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
         darkMode = true,
         url,
         token,
+        animatedBackground,
+        themePreset,
+        themeToggle = false,
     } = config;
+
+    // Active preset — starts from config, can be toggled at runtime
+    const [activePreset, setActivePreset] = useState<'amanecer' | 'noche' | undefined>(themePreset);
+
+    const togglePreset = () =>
+        setActivePreset(prev => prev === 'amanecer' ? 'noche' : 'amanecer');
+
+    // Default wave/particle colors based on active preset
+    const defaultWaveColor = activePreset === 'amanecer'
+        ? 'rgba(251, 146, 60, 0.35)'
+        : activePreset === 'noche'
+        ? 'rgba(0, 180, 216, 0.35)'
+        : 'rgba(255, 255, 255, 0.2)';
+
+    const defaultParticleColor = activePreset === 'amanecer'
+        ? 'rgba(251, 146, 60, 0.6)'
+        : activePreset === 'noche'
+        ? 'rgba(0, 180, 216, 0.6)'
+        : 'rgba(255, 255, 255, 0.5)';
 
     // Configure agent service
     useEffect(() => {
@@ -50,7 +113,7 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
     }, [url, token]);
 
     // Get messages from ChatBubbleContext
-    const { messages, isTyping } = useChatBubble();
+    const { messages, isTyping, toolCallLabel } = useChatBubble();
 
     // Ref for auto-scrolling
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -217,87 +280,120 @@ export const ChatBubbleComponent: React.FC<ChatBubbleComponentProps> = ({ config
         return darkMode ? `var(${darkVar})` : `var(${lightVar})`;
     };
 
+    // Inject theme toggle button into header actions if requested
+    const headerConfig = header ? {
+        ...header,
+        actions: [
+            ...(themeToggle ? [{
+                id: '__theme-toggle__',
+                icon: activePreset === 'amanecer' ? '🌙' : '☀️',
+                ariaLabel: activePreset === 'amanecer' ? 'Modo Noche' : 'Modo Amanecer',
+                onClick: togglePreset,
+                visible: true,
+            }] : []),
+            ...(header.actions || []),
+        ],
+    } : undefined;
+
+    const animBgEnabled = animatedBackground?.enabled === true;
+
     return (
         <div
             id="chat-bubble-container"
-            className={className} // Keep className for user override if needed
+            className={className}
             style={{
                 display: 'flex',
                 flexDirection: 'column',
-                overflow: 'visible',
+                overflow: 'hidden',
                 position: 'relative',
                 maxWidth,
                 height,
                 fontFamily: mergedTheme.fonts.family,
+                // Background on outer container so header + messages both show it
+                backgroundColor: getThemeVar('--color-background-light', '--color-background-dark'),
+                backgroundImage: 'var(--chat-background)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
                 ...buildCssVariables(),
+                // Preset vars override theme, user style overrides preset
+                ...(activePreset ? THEME_PRESETS[activePreset] : {}),
                 ...style,
             }}
         >
             {/* Header */}
-            {header && <ChatHeader config={header} />}
+            {headerConfig && <ChatHeader config={headerConfig} />}
 
-            {/* Main Chat Area */}
-            <main
-                style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    paddingLeft: '1rem',
-                    paddingRight: '1rem',
-                    paddingTop: '1.5rem',
-                    paddingBottom: '1.5rem',
-                    scrollBehavior: 'smooth',
-                    backgroundColor: getThemeVar('--color-background-light', '--color-background-dark'),
-                    backgroundImage: 'var(--chat-background)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                }}
-            >
-                <div style={{
-                    maxWidth: '800px',
-                    marginLeft: 'auto',
-                    marginRight: 'auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1.5rem',
-                }}>
-                    {Object.entries(groupedMessages).map(([dateKey, dateMessages]) => (
-                        <React.Fragment key={dateKey}>
-                            {/* Date Separator */}
-                            <DateSeparator date={new Date(dateKey)} config={dateSeparator} />
+            {/* Messages area — background lives on outer container so header shows it too */}
+            <div style={{
+                position: 'relative',
+                flex: 1,
+                overflow: 'hidden',
+            }}>
+                {animBgEnabled && (
+                    <AnimatedBackground
+                        waves={animatedBackground?.waves !== false}
+                        particles={animatedBackground?.particles !== false}
+                        waveColor={animatedBackground?.waveColor ?? defaultWaveColor}
+                        particleColor={animatedBackground?.particleColor ?? defaultParticleColor}
+                    />
+                )}
 
-                            {/* Messages for this date */}
-                            {dateMessages.map((message) => (
-                                <div
-                                    key={message.id}
-                                    ref={message.id === lastAssistantId ? lastAssistantRef : null}
-                                >
-                                    <ChatMessage message={message} defaultAvatar={header?.avatar} />
-                                </div>
-                            ))}
-                        </React.Fragment>
-                    ))}
+                <main
+                    style={{
+                        position: 'relative',
+                        zIndex: 1,
+                        height: '100%',
+                        overflowY: 'auto',
+                        paddingLeft: '1rem',
+                        paddingRight: '1rem',
+                        paddingTop: '1.5rem',
+                        paddingBottom: '1.5rem',
+                        scrollBehavior: 'smooth',
+                        backgroundColor: 'transparent',
+                    }}
+                >
+                    <div style={{
+                        maxWidth: '800px',
+                        marginLeft: 'auto',
+                        marginRight: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1.5rem',
+                    }}>
+                        {Object.entries(groupedMessages).map(([dateKey, dateMessages]) => (
+                            <React.Fragment key={dateKey}>
+                                <DateSeparator date={new Date(dateKey)} config={dateSeparator} />
 
-                    {/* Typing Indicator - shown only while waiting for first chunk */}
-                    {isTyping && !messages.some(m => m.role === 'assistant' && m.status === 'streaming') && (
-                        <TypingIndicator
-                            config={{
-                                show: true,
-                                avatar: header?.avatar,
-                            }}
-                        />
-                    )}
+                                {dateMessages.map((message) => (
+                                    <div
+                                        key={message.id}
+                                        ref={message.id === lastAssistantId ? lastAssistantRef : null}
+                                    >
+                                        <ChatMessage message={message} defaultAvatar={header?.avatar} />
+                                    </div>
+                                ))}
+                            </React.Fragment>
+                        ))}
 
-                    {/* Auto-scroll anchor */}
-                    <div ref={messagesEndRef} />
-                </div>
+                        {/* Typing Indicator — shown only while waiting for first chunk */}
+                        {isTyping && !messages.some(m => m.role === 'assistant' && m.status === 'streaming') && (
+                            <TypingIndicator
+                                config={{
+                                    show: true,
+                                    avatar: header?.avatar,
+                                    toolCallLabel,
+                                }}
+                            />
+                        )}
 
-            </main>
+                        <div ref={messagesEndRef} />
+                    </div>
+                </main>
+            </div>
 
-            {/* Input */}
-            {/* Suggested replies — shown between messages and input when available */}
+            {/* Suggested replies + Input */}
             <SuggestedReplies />
-
             {input && <ChatInput config={input} />}
 
         </div>

@@ -16,9 +16,20 @@ export class MessageListRenderer extends DOMRenderer {
     private isTyping: boolean = false,
     private defaultAvatar?: AvatarConfig,
     private dateSeparatorConfig?: DateSeparatorConfig,
-    private className: string = ''
+    private className: string = '',
+    private toolCallLabel: string = ''
   ) {
     super();
+  }
+
+  /**
+   * Update tool call label in typing indicator without full re-render
+   */
+  updateToolCallLabel(label: string): void {
+    this.toolCallLabel = label;
+    if (this.element) {
+      this.updateInnerHTML(this.renderMessages());
+    }
   }
 
   /**
@@ -109,7 +120,8 @@ export class MessageListRenderer extends DOMRenderer {
       messageHtmlParts.push(
         TypingIndicatorRenderer.render({
           show: true,
-          avatar: this.defaultAvatar
+          avatar: this.defaultAvatar,
+          toolCallLabel: this.toolCallLabel,
         })
       );
     }

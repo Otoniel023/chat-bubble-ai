@@ -12,6 +12,7 @@ export interface ChatState {
   isLoading: boolean;
   error: string | null;
   suggestions: string[];
+  toolCallLabel: string;
 }
 
 /**
@@ -33,6 +34,7 @@ export class StateManager extends EventEmitter {
       isLoading: false,
       error: null,
       suggestions: [],
+      toolCallLabel: '',
     };
   }
 
@@ -171,6 +173,22 @@ export class StateManager extends EventEmitter {
   }
 
   /**
+   * Set tool call label shown in typing indicator
+   */
+  setToolCallLabel(label: string): void {
+    this.state.toolCallLabel = label;
+    this.emit('toolcall:changed', label);
+    this.emit('state:changed', this.state);
+  }
+
+  /**
+   * Get current tool call label
+   */
+  getToolCallLabel(): string {
+    return this.state.toolCallLabel;
+  }
+
+  /**
    * Reset to initial state
    */
   reset(): void {
@@ -180,12 +198,14 @@ export class StateManager extends EventEmitter {
       isLoading: false,
       error: null,
       suggestions: [],
+      toolCallLabel: '',
     };
     this.emit('messages:changed', this.state.messages);
     this.emit('typing:changed', this.state.isTyping);
     this.emit('loading:changed', this.state.isLoading);
     this.emit('error:changed', this.state.error);
     this.emit('suggestions:changed', this.state.suggestions);
+    this.emit('toolcall:changed', this.state.toolCallLabel);
     this.emit('state:changed', this.state);
   }
 

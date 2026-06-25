@@ -32,7 +32,7 @@ export class TypingIndicatorRenderer {
    * Render typing indicator
    */
   render(): string {
-    const { show = false, dotColor = '#94a3b8' } = this.config;
+    const { show = false, dotColor = '#94a3b8', toolCallLabel = '' } = this.config;
 
     if (!show) return '';
 
@@ -84,6 +84,16 @@ export class TypingIndicatorRenderer {
               animation: chat-bubble-bounce 1s infinite;
               animation-delay: 0.4s;
             "></span>
+            ${toolCallLabel ? `<span style="
+              margin-left: 0.5rem;
+              font-size: 0.75rem;
+              color: #64748b;
+              font-style: italic;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 160px;
+            ">${toolCallLabel}</span>` : ''}
           </div>
         </div>
       </div>

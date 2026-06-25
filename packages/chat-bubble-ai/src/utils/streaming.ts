@@ -11,6 +11,7 @@ import type { StreamCallbacks } from '../types/agent.types';
  * Supported named events:
  *   - event: thinking  → ignored (future use)
  *   - event: carousel  → calls callbacks.onCarousel with parsed image array
+ *   - event: toolcall  → calls callbacks.onToolCall with the label string
  * Special data values:
  *   - [DONE]      → calls onComplete and stops
  *   - [CANCELLED] → calls onComplete and stops
@@ -54,6 +55,13 @@ export async function processSSEStream(
           callbacks.onSuggestions?.(parsed.items as string[]);
         }
       } catch { /* malformed JSON — ignore */ }
+    } else if (currentEvent === 'toolcall') {
+      try {
+        const parsed = JSON.parse(currentData) as { label?: string };
+        callbacks.onToolCall?.(parsed.label || 'Procesando...');
+      } catch {
+        callbacks.onToolCall?.('Procesando...');
+      }
     } else if (currentEvent !== 'thinking') {
       // Default message event
       if (currentData === '[DONE]' || currentData === '[CANCELLED]') {

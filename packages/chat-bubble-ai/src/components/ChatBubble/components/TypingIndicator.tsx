@@ -11,7 +11,7 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
     config = { show: false },
     className = '',
 }) => {
-    const { show, avatar, dotColor = '#94a3b8' } = config; // default to slate-400
+    const { show, avatar, dotColor = '#94a3b8', toolCallLabel = '' } = config; // default to slate-400
 
     if (!show) return null;
 
@@ -80,6 +80,20 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({
                             animationDelay: '0.4s',
                         }}
                     />
+                    {toolCallLabel && (
+                        <span style={{
+                            marginLeft: '0.5rem',
+                            fontSize: '0.75rem',
+                            color: '#64748b',
+                            fontStyle: 'italic',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: '160px',
+                        }}>
+                            {toolCallLabel}
+                        </span>
+                    )}
                 </div>
             </div>
         </div>
